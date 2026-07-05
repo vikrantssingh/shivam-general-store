@@ -22,6 +22,10 @@ export default function ProductsClient({ initialProducts, categories }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // State for Selects to fix raw value display bug
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("true");
 
   const filteredProducts = initialProducts.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -29,11 +33,15 @@ export default function ProductsClient({ initialProducts, categories }) {
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
+    setSelectedCategoryId("");
+    setSelectedStatus("true");
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (product) => {
     setEditingProduct(product);
+    setSelectedCategoryId(product.category_id || "");
+    setSelectedStatus(product.status !== false ? "true" : "false");
     setIsFormOpen(true);
   };
 
@@ -106,11 +114,12 @@ export default function ProductsClient({ initialProducts, categories }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Category</label>
-              <Select name="category_id" defaultValue={editingProduct?.category_id || ""}>
+              <Select name="category_id" value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Category" />
+                  {selectedCategoryId && selectedCategoryId !== "none" ? (categories.find(c => c.id === selectedCategoryId)?.name || "Select Category") : <span className="text-gray-500">Uncategorized (No Category)</span>}
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none" className="text-gray-500 italic">Uncategorized (No Category)</SelectItem>
                   {categories.map(c => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
@@ -140,9 +149,9 @@ export default function ProductsClient({ initialProducts, categories }) {
             
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Status</label>
-              <Select name="status" defaultValue={editingProduct ? (editingProduct.status ? "true" : "false") : "true"}>
+              <Select name="status" value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger>
-                  <SelectValue />
+                  {selectedStatus === "true" ? "Active (Visible)" : "Inactive (Hidden)"}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="true">Active (Visible)</SelectItem>

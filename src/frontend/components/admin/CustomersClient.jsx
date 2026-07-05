@@ -62,20 +62,20 @@ export default function CustomersClient({ users }) {
         <p className="text-sm text-gray-500 mt-1">Manage retail customers and approve wholesale shopkeeper accounts.</p>
       </div>
 
-      <Tabs defaultValue="all" className="w-full" orientation="horizontal">
-        {/* Search Bar Line */}
-        <div className="relative w-full mb-6">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-          <Input 
-            placeholder="Search by name, email, phone or business..." 
-            className="pl-9 bg-white border-gray-200 w-full shadow-sm" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      {/* Search Bar Line (Moved outside Tabs for strict vertical layout) */}
+      <div className="relative w-full">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+        <Input 
+          placeholder="Search by name, email, phone or business..." 
+          className="pl-9 bg-white border-gray-200 w-full shadow-sm" 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
+      <Tabs defaultValue="all" className="w-full flex flex-col space-y-4">
         {/* Tabs Line */}
-        <div className="mb-6 w-full overflow-x-auto pb-2">
+        <div className="w-full overflow-x-auto pb-2">
           <TabsList className="bg-gray-100 p-1 flex flex-row w-max min-w-full sm:min-w-0">
             <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-4">
               All ({users.length})

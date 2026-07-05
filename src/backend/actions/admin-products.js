@@ -49,7 +49,7 @@ export async function addProductAction(formData) {
 
   const { error } = await supabase.from("products").insert({
     name,
-    category_id: category_id || null,
+    category_id: (!category_id || category_id === "none") ? null : category_id,
     unit,
     retail_price,
     shopkeeper_price: wholesale_price || null,
@@ -115,7 +115,7 @@ export async function updateProductAction(formData) {
 
   const { error } = await supabase.from("products").update({
     name,
-    category_id: category_id || null,
+    category_id: (!category_id || category_id === "none") ? null : category_id,
     unit,
     retail_price,
     shopkeeper_price: wholesale_price || null,
