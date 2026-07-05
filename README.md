@@ -1,93 +1,121 @@
-# Shivam General Store - Modern E-Commerce Platform
+# SHIVAM GENERAL STORE
 
-Welcome to the official repository for **Shivam General Store**, a production-grade, highly scalable, and secure single-vendor e-commerce platform built specifically for mobile-first users.
+![Shivam General Store](https://via.placeholder.com/1200x400.png?text=Shivam+General+Store+-+Official+E-commerce+Platform)
 
-## 🚀 Overview
+A production-quality, mobile-first e-commerce website custom-built for a single physical retail store. 
 
-Shivam General Store is designed to provide a premium shopping experience with seamless performance. It is built to support two distinct customer segments: **Retail Customers** and **Shopkeepers (Bulk Buyers)**, all managed through a robust **Owner/Admin Dashboard**.
+This platform empowers the shop owner to transition their entire brick-and-mortar operation online, catering seamlessly to both **everyday retail customers** and **bulk-purchasing shopkeepers**, all managed from a powerful, centralized Admin Dashboard.
 
-This platform is NOT a multi-vendor marketplace; it is tailored exclusively for a single store to dominate its local market with features rivaling top-tier e-commerce giants.
-
-## 🛠 Technology Stack
-
-This project is built using modern, edge-ready technologies to ensure blazing-fast load times and unparalleled security:
-
-- **Frontend:** Next.js 14 (App Router), React, JavaScript
-- **Styling:** Tailwind CSS, Shadcn UI, Lucide Icons
-- **Forms & Validation:** React Hook Form, Zod
-- **State Management:** React Context API
-- **Charts (Admin):** Recharts
-- **Notifications:** Sonner
-- **Backend & Database:** Supabase (PostgreSQL, Storage, Auth)
-- **Deployment:** Vercel
+> **Note:** This is an exclusive single-vendor platform (like Blinkit or JioMart), not a multi-vendor marketplace like Amazon or Flipkart.
 
 ---
 
-## 🏗 Architecture & Strategy
+## 1. Project Overview
 
-Our codebase follows a strict separation of concerns to guarantee maintainability and ease of navigation:
+**Shivam General Store** solves the operational bottleneck of managing a physical store with dual customer bases (Retail and Wholesale). By digitizing the inventory, pricing tiers, and order management, this application allows the owner to:
 
-```text
-src/
-├── app/          # Next.js App Router (Pages, Layouts, Route Groups)
-├── frontend/     # UI Components, React Context, Custom Hooks
-└── backend/      # Next.js Server Actions, Supabase Clients, Zod Validations
-```
-
-### 1. Mobile-First & Premium UI Strategy
-The majority of customers will shop using their mobile devices. Therefore, the UI is meticulously designed for small screens first, featuring bottom navigation, touch-friendly touch targets, smooth micro-animations, and a "glassmorphism" premium aesthetic using Tailwind CSS and Shadcn.
-
-### 2. The Hybrid Cart Strategy
-Guests can browse, search, and add items to a **local cart** without logging in. Upon successful login or registration, the local cart seamlessly synchronizes with the user's database cart via Server Actions, ensuring zero friction in the conversion funnel.
-
-### 3. Server Actions Over API Routes
-To minimize client-side javascript and improve security, we heavily utilize **Next.js Server Actions**. Database mutations (e.g., adding to cart, placing orders, updating stock) happen entirely on the server, tightly coupled with our frontend forms via Zod validation.
+- Accept orders 24/7 without manual intervention.
+- Prevent pricing confusion by automatically showing wholesale rates only to verified shopkeepers.
+- Drastically reduce checkout time with local-storage cart persistence and streamlined delivery options (Home Delivery & Store Pickup).
+- Monitor daily sales, order volumes, and low-stock alerts dynamically.
 
 ---
 
-## 🔐 Advanced Security Measures
+## 2. Features
 
-Security is the backbone of this platform. We employ a multi-layered defense strategy:
+### 👤 Guest Users
+- **Browse & Search:** Effortlessly browse product catalogs and search for specific items.
+- **Dynamic Cart:** Add items to a persistent cart that saves locally to the device without requiring an account.
+- **Transparent Pricing:** View standard retail pricing for all items.
 
-1. **Supabase Authentication:** Secure Email/Password authentication with encrypted session management.
-2. **Row Level Security (RLS):** Policies enforced directly at the PostgreSQL database level.
-   - *Example:* A user can only `SELECT` their own orders. An Admin can `SELECT` all. If a hacker bypasses the frontend, the database will outright reject unauthorized queries.
-3. **Role-Based Access Control (RBAC):** Users are assigned roles (`retail`, `shopkeeper_pending`, `shopkeeper_approved`, `admin`).
-   - Shopkeeper pricing and bulk limits are strictly hidden at the server level unless the `role` evaluates to `shopkeeper_approved`.
-4. **Middleware Protection:** Next.js Edge Middleware intercepts requests to `/admin` and `/shopkeeper` routes, instantly redirecting unauthorized users before the page even begins to render.
-5. **Strict Input Validation:** Every form submission is validated on the client (for UX) and re-validated on the server (for security) using **Zod** to prevent SQL injection, XSS, and payload manipulation.
+### 🛒 Retail Customers
+- **Authentication:** Secure Email & Password Login / Registration via Supabase.
+- **Seamless Checkout:** Place orders for Home Delivery (with dynamic delivery charges) or Store Pickup (Free).
+- **Order Tracking:** Track the status of active orders (Placed, Preparing, Out for Delivery).
+- **Address Management:** Pre-filled address and contact details saved to the user profile.
 
----
+### 🏪 Shopkeepers (Bulk Purchasers)
+- **Specialized Onboarding:** Separate registration flow tailored for shopkeepers (requires GST/Business details).
+- **Approval System:** Accounts remain in a "Pending" state, seeing only Retail prices until the Admin explicitly approves them.
+- **Wholesale Pricing:** Once approved, the entire catalog dynamically updates to reveal discounted bulk pricing.
+- **High-Volume Ordering:** Streamlined checkout process designed for bulk inventory restocking.
 
-## 👥 User Roles & Features
+### 👑 Owner / Admin
+The Owner/Admin has absolute control over the platform via a secure, protected dashboard route (`/admin`).
 
-### 1. Retail Customer
-- **Access:** Open registration.
-- **Features:** Browse products at retail prices, search & filter, local/synced cart, checkout, order tracking, invoice history, profile & address management.
-
-### 2. Shopkeeper (Bulk Buyer)
-- **Access:** Requires Admin Approval.
-- **Features:** 
-  - Submits business details (GST, Shop Name) during registration.
-  - Until approved, cannot see bulk pricing.
-  - Once approved, gains access to exclusive shopkeeper prices, separate bulk purchase limits, and priority dashboard features.
-
-### 3. Owner / Admin
-- **Access:** Manually provisioned secure accounts.
-- **Features:** 
-  - **Dashboard:** Analytics powered by Recharts (Sales, Orders, Stock Alerts).
-  - **Product Management:** Full CRUD operations, image uploads, stock/price quick edits.
-  - **Order Management:** Status tracking (Preparing -> Out for Delivery -> Delivered).
-  - **Customer Management:** Approve/Reject shopkeeper requests, view customer history.
-  - **Store Settings:** Configure dynamic location-based delivery charges and timeframes.
+- **Executive Dashboard:** Live metrics including Today's Revenue, Order Volume, Total Customers, and Low Stock Alerts visualized via Recharts.
+- **Product Management:** Full CRUD capabilities for the inventory. Set distinct Retail vs. Wholesale prices.
+- **Order Management:** View all incoming orders, distinguish between Retail and Shopkeeper purchases, and manually update fulfillment statuses.
+- **Customer & Approvals:** Tabbed interface to review the customer base and actively Approve or Reject pending Shopkeeper registrations.
+- **Store Settings:** Toggle Home Delivery or Store Pickup globally, and dynamically adjust Free Delivery thresholds and delivery charges.
 
 ---
 
-## 📦 Deployment Instructions
+## 3. Technology Stack
 
-1. Link the repository to **Vercel**.
-2. Set the following environment variables provided by your Supabase project:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` (For Admin Server Actions)
-3. Deploy! Next.js and Vercel will automatically handle static generation and edge caching for optimal performance.
+Built with modern, scalable, and highly performant technologies.
+
+### Frontend
+- **Next.js (App Router):** Leveraging server components and server actions for optimal performance and SEO.
+- **React (JavaScript):** Component-based architecture without the overhead of TypeScript, as requested.
+- **Tailwind CSS (v3):** Utility-first styling ensuring a robust, mobile-first responsive design.
+- **Shadcn UI:** Premium, accessible, and customizable UI components (Buttons, Tables, Tabs, Inputs, Radios).
+- **Lucide React Icons:** Clean and modern iconography.
+
+### Backend & Database
+- **Supabase:** The complete backend-as-a-service.
+- **Supabase PostgreSQL:** Highly relational data modeling utilizing Enums and complex constraints.
+- **Supabase Auth:** Secure JWT-based authentication bridging Server Components, Middleware, and Client Components.
+
+### Tooling & Integrations
+- **React Hook Form & Zod:** Bulletproof client and server-side form validation.
+- **Recharts:** Responsive, composable charting for the Admin Dashboard.
+- **Sonner:** Beautiful, unobtrusive toast notifications for state mutations.
+
+---
+
+## 4. Database Schema & Security Strategy
+
+The application uses a robust PostgreSQL schema (located in `supabase/schema.sql`). 
+
+### Security & Row Level Security (RLS)
+Security is handled natively at the database level using Supabase RLS, ensuring zero data leakage:
+
+1. **Role-Based Access Control (RBAC):** Users are strictly categorized via a `user_role` Enum:
+   - `retail`
+   - `shopkeeper_pending`
+   - `shopkeeper_approved`
+   - `admin`
+2. **Data Isolation:**
+   - **Profiles:** Users can only `SELECT` and `UPDATE` their own profile data.
+   - **Orders:** Customers can only view their own orders. Admins can view all orders.
+   - **Products:** Anyone can view products, but only the `admin` role can `INSERT`, `UPDATE`, or `DELETE`.
+3. **Automated Triggers:** A `handle_new_user()` trigger automatically intercepts Supabase Auth signups, extracting metadata to initialize the public `users` profile safely.
+
+### Protected Routes
+Next.js Middleware rigorously protects all `/admin` routes. Any unauthenticated or unauthorized access attempt is instantly redirected to the `/login` page before the server even renders the page.
+
+---
+
+## 5. Deployment Strategy
+
+The application is architected to be deployed seamlessly on **Vercel**.
+
+1. **Environment Variables:** Requires `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+2. **Stateless Edge:** Uses Next.js Server Actions exclusively for data mutations, eliminating the need for a separate Node.js/Express backend.
+3. **Database Migrations:** The `supabase/schema.sql` can be executed directly in the Supabase SQL Editor to instantly provision the database architecture.
+
+---
+
+## 6. Local Development
+
+To run this project locally:
+
+1. Clone the repository.
+2. Run `npm install` to install dependencies.
+3. Copy `.env.example` to `.env.local` and populate it with your Supabase credentials.
+4. Execute `supabase/schema.sql` in your Supabase project.
+5. Run `npm run dev` to start the development server at `http://localhost:3000`.
+
+---
+*Designed and built for production. Crafted with care.*
