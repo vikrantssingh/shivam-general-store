@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shivam General Store - Static Template</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Tailwind CSS included for static reference -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+    
+    <header class="bg-green-700 text-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">Shivam General Store</h1>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="#" class="hover:text-green-200 transition">Home</a></li>
+                    <li><a href="#" class="hover:text-green-200 transition">Products</a></li>
+                    <li><a href="#" class="hover:text-green-200 transition">About Us</a></li>
+                    <li><a href="#" class="hover:text-green-200 transition">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <section class="mb-12 text-center bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
+            <h2 class="text-4xl font-extrabold text-gray-800 mb-4">Welcome to Our Store</h2>
+            <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">Get the freshest groceries and daily essentials delivered right to your doorstep. We guarantee quality and best prices.</p>
+            <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1">
+                Shop Now
+            </button>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Product 1 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                    <span class="text-5xl">🌾</span>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2">Premium Wheat Flour</h3>
+                    <p class="text-gray-600 mb-4">High quality wheat flour for soft and healthy rotis.</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-green-700">₹240</span>
+                        <button class="text-sm font-semibold text-green-600 hover:text-green-800">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                    <span class="text-5xl">🍚</span>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2">Basmati Rice</h3>
+                    <p class="text-gray-600 mb-4">Long grain premium basmati rice for perfect biryani.</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-green-700">₹150/kg</span>
+                        <button class="text-sm font-semibold text-green-600 hover:text-green-800">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                    <span class="text-5xl">🛢️</span>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2">Mustard Oil</h3>
+                    <p class="text-gray-600 mb-4">Pure and cold-pressed mustard oil for healthy cooking.</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-green-700">₹180/L</span>
+                        <button class="text-sm font-semibold text-green-600 hover:text-green-800">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2026 Shivam General Store. All rights reserved.</p>
+            <p class="mt-2 text-sm">Built with HTML and Tailwind CSS.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
