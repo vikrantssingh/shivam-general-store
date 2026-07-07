@@ -1,0 +1,109 @@
+import { createClient } from "@/backend/supabase/server";
+import { redirect } from "next/navigation";
+import { User, CheckCircle, Clock, XCircle } from "lucide-react";
+import { logoutAction } from "@/backend/actions/auth";
+import { Button } from "@/components/ui/button";
+
+export default async function AccountPage() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  const renderStatus = () => {
+    switch (profile?.role) {
+      case "shopkeeper_pending":
+        return (
+          <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <Clock className="h-6 w-6 text-yellow-500" />
+            <div>
+              <h3 className="font-bold text-yellow-800">Pending Approval</h3>
+              <p className="text-sm text-yellow-700">We are reviewing your shopkeeper application. Please check back later.</p>
+            </div>
+          </div>
+        );
+      case "shopkeeper_approved":
+        return (
+          <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <CheckCircle className="h-6 w-6 text-green-600" />
+            <div>
+              <h3 className="font-bold text-green-800">Approved Shopkeeper</h3>
+              <p className="text-sm text-green-700">Your wholesale account is active. You are now seeing wholesale prices.</p>
+            </div>
+          </div>
+        );
+      case "shopkeeper_rejected":
+        return (
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <XCircle className="h-6 w-6 text-red-500" />
+            <div>
+              <h3 className="font-bold text-red-800">Application Rejected</h3>
+              <p className="text-sm text-red-700">Your shopkeeper application was not approved. You can continue shopping as a retail customer.</p>
+            </div>
+          </div>
+        );
+      default:
+        // Retail users (or admins) who never applied for shopkeeper
+        return null;
+    }
+  };
+
+  return (
+    <div className="container mx-auto max-w-2xl px-4 py-8">
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
+        <div className="flex items-center justify-between border-b pb-6 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
+              <User className="h-8 w-8 text-green-700" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{profile?.full_name || "My Account"}</h1>
+              <p className="text-gray-500 text-sm">{user.email}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Profile Details</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <span className="text-xs text-gray-500 block">Phone Number</span>
+                <span className="font-medium text-gray-900">{profile?.phone || "Not provided"}</span>
+              </div>
+              {profile?.business_name && (
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <span className="text-xs text-gray-500 block">Business Name</span>
+                  <span className="font-medium text-gray-900">{profile.business_name}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {(profile?.role?.startsWith("shopkeeper") || profile?.role === "admin") && (
+            <div>
+              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Wholesale Request Status</h2>
+              {renderStatus()}
+            </div>
+          )}
+
+          <div className="pt-6 border-t mt-8">
+            <form action={logoutAction}>
+              <Button type="submit" variant="destructive" className="w-full sm:w-auto font-semibold">
+                Logout
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

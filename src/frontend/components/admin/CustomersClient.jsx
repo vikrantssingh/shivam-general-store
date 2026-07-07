@@ -15,13 +15,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { approveShopkeeperAction, rejectShopkeeperAction } from "@/backend/actions/admin-customers";
+import { approveShopkeeperAction, rejectShopkeeperAction, changeUserRoleAction } from "@/backend/actions/admin-customers";
 
 export default function CustomersClient({ users }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoadingId, setIsLoadingId] = useState(null);
 
-  const retailCustomers = users.filter(u => u.role === "retail");
+  const retailCustomers = users.filter(u => u.role === "retail" || u.role === "shopkeeper_rejected");
   const shopkeepers = users.filter(u => u.role === "shopkeeper_approved");
   const pendingApprovals = users.filter(u => u.role === "shopkeeper_pending");
 
@@ -55,6 +55,19 @@ export default function CustomersClient({ users }) {
     setIsLoadingId(null);
   };
 
+  const handleChangeRole = async (id, name, newRole) => {
+    const roleText = newRole === "retail" ? "Retailer" : "Shopkeeper";
+    if (!confirm(`Change ${name}'s role to ${roleText}?`)) return;
+    setIsLoadingId(id);
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("role", newRole);
+    const res = await changeUserRoleAction(formData);
+    if (res.error) toast.error(res.error);
+    else toast.success(`${name} is now a ${roleText}!`);
+    setIsLoadingId(null);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -77,16 +90,16 @@ export default function CustomersClient({ users }) {
         {/* Tabs Line */}
         <div className="w-full overflow-x-auto pb-2">
           <TabsList className="bg-gray-100 p-1 flex flex-row w-max min-w-full sm:min-w-0">
-            <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-4">
+            <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-green-700 data-[state=active]:font-bold px-4">
               All ({users.length})
             </TabsTrigger>
-            <TabsTrigger value="retail" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-4">
+            <TabsTrigger value="retail" className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-green-700 data-[state=active]:font-bold px-4">
               Retail Customers ({retailCustomers.length})
             </TabsTrigger>
-            <TabsTrigger value="shopkeepers" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-4">
+            <TabsTrigger value="shopkeepers" className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-green-700 data-[state=active]:font-bold px-4">
               Shopkeepers ({shopkeepers.length})
             </TabsTrigger>
-            <TabsTrigger value="approvals" className="data-[state=active]:bg-white data-[state=active]:text-yellow-700 data-[state=active]:shadow-sm font-semibold px-4">
+            <TabsTrigger value="approvals" className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-yellow-700 data-[state=active]:font-bold px-4">
               Approvals
               {pendingApprovals.length > 0 && (
                 <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-100 text-[10px] text-yellow-800 font-bold">
@@ -106,6 +119,7 @@ export default function CustomersClient({ users }) {
                   <TableHead className="font-semibold text-gray-700">User Details</TableHead>
                   <TableHead className="font-semibold text-gray-700">Contact</TableHead>
                   <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                  <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -130,6 +144,19 @@ export default function CustomersClient({ users }) {
                       {user.role === 'shopkeeper_approved' && <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Shopkeeper</Badge>}
                       {user.role === 'shopkeeper_pending' && <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending Approval</Badge>}
                     </TableCell>
+                    <TableCell className="text-right">
+                      {user.role !== 'admin' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleChangeRole(user.id, user.full_name, user.role === 'shopkeeper_approved' ? 'retail' : 'shopkeeper_approved')}
+                          disabled={isLoadingId === user.id}
+                          className="text-xs h-7"
+                        >
+                          {user.role === 'shopkeeper_approved' ? "Make Retailer" : "Make Shopkeeper"}
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filterData(users).length === 0 && (
@@ -151,6 +178,7 @@ export default function CustomersClient({ users }) {
                   <TableHead className="font-semibold text-gray-700">Customer Name</TableHead>
                   <TableHead className="font-semibold text-gray-700">Contact</TableHead>
                   <TableHead className="font-semibold text-gray-700">Joined On</TableHead>
+                  <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -164,6 +192,17 @@ export default function CustomersClient({ users }) {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">{new Date(cust.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleChangeRole(cust.id, cust.full_name, 'shopkeeper_approved')}
+                        disabled={isLoadingId === cust.id}
+                        className="text-xs h-7 text-green-700 border-green-200 hover:bg-green-50"
+                      >
+                        Make Shopkeeper
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filterData(retailCustomers).length === 0 && (
@@ -185,6 +224,7 @@ export default function CustomersClient({ users }) {
                   <TableHead className="font-semibold text-gray-700">Business Details</TableHead>
                   <TableHead className="font-semibold text-gray-700">Owner Contact</TableHead>
                   <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                  <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -205,6 +245,17 @@ export default function CustomersClient({ users }) {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 font-semibold">Active</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleChangeRole(sk.id, sk.full_name, 'retail')}
+                        disabled={isLoadingId === sk.id}
+                        className="text-xs h-7 text-gray-700 hover:text-red-700 hover:bg-red-50"
+                      >
+                        Make Retailer
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

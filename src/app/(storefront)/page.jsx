@@ -6,6 +6,16 @@ import { createClient } from "@/backend/supabase/server";
 export default async function StorefrontHome() {
   const supabase = createClient();
 
+  // Check if user is an approved shopkeeper
+  const { data: { user } } = await supabase.auth.getUser();
+  let isShopkeeper = false;
+  if (user) {
+    const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (profile && profile.role === 'shopkeeper_approved') {
+      isShopkeeper = true;
+    }
+  }
+
   // Fetch categories
   const { data: categories } = await supabase
     .from("categories")
@@ -72,17 +82,32 @@ export default async function StorefrontHome() {
         
         {products && products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={{
-                id: product.id,
-                name: product.name,
-                unit: product.unit,
-                price: product.retail_price,
-                mrp: product.mrp || product.retail_price,
-                discount: product.mrp ? Math.round(((product.mrp - product.retail_price) / product.mrp) * 100) : 0,
-                image_url: product.image_url
-              }} />
-            ))}
+            {products.map((product) => {
+              // Determine effective price and MRP based on user role
+              const effectivePrice = isShopkeeper && product.shopkeeper_price 
+                ? product.shopkeeper_price 
+                : product.retail_price;
+                
+              const displayMrp = isShopkeeper && product.shopkeeper_price 
+                ? product.retail_price // Shopkeepers see retail price as MRP
+                : (product.mrp || product.retail_price);
+                
+              const discount = displayMrp && displayMrp > effectivePrice
+                ? Math.round(((displayMrp - effectivePrice) / displayMrp) * 100) 
+                : 0;
+
+              return (
+                <ProductCard key={product.id} product={{
+                  id: product.id,
+                  name: product.name,
+                  unit: product.unit,
+                  price: effectivePrice,
+                  mrp: displayMrp,
+                  discount: discount,
+                  image_url: product.image_url
+                }} />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-100">

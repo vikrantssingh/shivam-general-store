@@ -62,17 +62,17 @@ export default function Header({ user, isAdmin }) {
           </Link>
 
           {user ? (
-            <form action={logoutAction}>
-              <Button type="submit" variant="ghost" size="icon" className="hidden md:flex text-red-600 hover:text-red-700 hover:bg-red-50" title="Logout">
-                <LogOut className="h-5 w-5" />
-                <span className="sr-only">Logout</span>
+            <Link href="/account">
+              <Button variant="ghost" size="icon" className="hidden md:flex text-green-700 hover:text-green-800 hover:bg-green-50" title="My Account">
+                <User className="h-5 w-5" />
+                <span className="sr-only">My Account</span>
               </Button>
-            </form>
+            </Link>
           ) : (
             <Link href="/login">
               <Button variant="ghost" size="icon" className="hidden md:flex" title="Login / Register">
                 <User className="h-5 w-5 text-gray-700" />
-                <span className="sr-only">Account</span>
+                <span className="sr-only">Login</span>
               </Button>
             </Link>
           )}

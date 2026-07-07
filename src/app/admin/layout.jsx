@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, Grid, ShoppingCart, Users, Settings, LogOut, Bell, Truck } from "lucide-react";
 import { logoutAction } from "@/backend/actions/auth";
 
 export default function AdminLayout({ children }) {
+  const pathname = usePathname();
+  
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
     { icon: Package, label: "Products", href: "/admin/products" },
@@ -31,13 +36,19 @@ export default function AdminLayout({ children }) {
         <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href));
+            
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive 
+                    ? "bg-green-50 text-green-700 border-l-4 border-green-600 font-bold shadow-sm" 
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 border-l-4 border-transparent"
+                }`}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className={`h-5 w-5 ${isActive ? "text-green-600" : ""}`} />
                 {item.label}
               </Link>
             );
