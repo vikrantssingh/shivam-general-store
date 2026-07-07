@@ -1,6 +1,6 @@
 import { createClient } from "@/backend/supabase/server";
 import { redirect } from "next/navigation";
-import { User, CheckCircle, Clock, XCircle } from "lucide-react";
+import { User, CheckCircle, Clock, XCircle, Package } from "lucide-react";
 import { logoutAction } from "@/backend/actions/auth";
 import { Button } from "@/components/ui/button";
 
@@ -95,9 +95,14 @@ export default async function AccountPage() {
             </div>
           )}
 
-          <div className="pt-6 border-t mt-8">
-            <form action={logoutAction}>
-              <Button type="submit" variant="destructive" className="w-full sm:w-auto font-semibold">
+          <div className="pt-6 border-t mt-8 flex flex-col sm:flex-row gap-4">
+            <a href="/orders" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full font-semibold border-gray-200 text-gray-700 hover:bg-gray-50">
+                <Package className="mr-2 h-4 w-4" /> My Orders
+              </Button>
+            </a>
+            <form action={logoutAction} className="w-full sm:w-auto">
+              <Button type="submit" variant="destructive" className="w-full font-semibold">
                 Logout
               </Button>
             </form>

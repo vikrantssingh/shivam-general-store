@@ -55,3 +55,46 @@ export async function placeOrderAction(orderData, cartItems) {
   revalidatePath("/dashboard/orders");
   return { success: true, orderId: order.id };
 }
+
+export async function updateOrderStatusAction(formData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Unauthorized" };
+
+  // Verify admin
+  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
+  if (!profile || profile.role !== "admin") return { error: "Unauthorized" };
+
+  const id = formData.get("id");
+  const status = formData.get("status");
+  const etaMessage = formData.get("etaMessage");
+  
+  if (!id || !status) return { error: "Missing required fields" };
+
+  // If there's an ETA message, we need to fetch the existing delivery_address to update it
+  let updateData = {
+    status,
+    updated_at: new Date().toISOString()
+  };
+
+  if (etaMessage !== null && etaMessage !== undefined) {
+    const { data: order } = await supabase.from("orders").select("delivery_address").eq("id", id).single();
+    if (order) {
+      updateData.delivery_address = {
+        ...(order.delivery_address || {}),
+        eta_message: etaMessage
+      };
+    }
+  }
+
+  const { error } = await supabase
+    .from("orders")
+    .update(updateData)
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/orders");
+  return { success: true };
+}

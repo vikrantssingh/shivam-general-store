@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Search, ShoppingCart, User, LogOut } from "lucide-react";
+import { Menu, Search, ShoppingCart, User, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/frontend/context/CartContext";
 import { logoutAction } from "@/backend/actions/auth";
@@ -49,17 +49,26 @@ export default function Header({ user, isAdmin }) {
             <span className="sr-only">Search</span>
           </Button>
           
-          <Link href="/cart">
-            <Button variant="ghost" size="icon" className="relative">
+          <Link href="/cart" className="relative hidden md:flex">
+            <Button variant="ghost" size="icon" title="Cart">
               <ShoppingCart className="h-5 w-5 text-gray-700" />
               {totalItems > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white shadow-sm">
                   {totalItems}
                 </span>
               )}
               <span className="sr-only">Cart</span>
             </Button>
           </Link>
+
+          {user && (
+            <Link href="/orders">
+              <Button variant="ghost" size="icon" className="hidden md:flex text-gray-700 hover:text-green-700 hover:bg-green-50" title="My Orders">
+                <Package className="h-5 w-5" />
+                <span className="sr-only">My Orders</span>
+              </Button>
+            </Link>
+          )}
 
           {user ? (
             <Link href="/account">
