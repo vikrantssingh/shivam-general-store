@@ -23,11 +23,8 @@ export default function ProductsClient({ initialProducts, categories }) {
   const [editingProduct, setEditingProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  // State for Selects to fix raw value display bug
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("true");
-  const [hasRetailLimit, setHasRetailLimit] = useState(false);
-  const [hasWholesaleLimit, setHasWholesaleLimit] = useState(false);
 
   const filteredProducts = initialProducts.filter(p => 
     (p.name || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -37,8 +34,6 @@ export default function ProductsClient({ initialProducts, categories }) {
     setEditingProduct(null);
     setSelectedCategoryId("");
     setSelectedStatus("true");
-    setHasRetailLimit(false);
-    setHasWholesaleLimit(false);
     setIsFormOpen(true);
   };
 
@@ -46,9 +41,6 @@ export default function ProductsClient({ initialProducts, categories }) {
     setEditingProduct(product);
     setSelectedCategoryId(product.category_id || "");
     setSelectedStatus(product.status !== false ? "true" : "false");
-    
-    setHasRetailLimit(product.retail_limit > 0);
-    setHasWholesaleLimit(product.shopkeeper_limit > 0);
     
     setIsFormOpen(true);
   };
@@ -128,11 +120,16 @@ export default function ProductsClient({ initialProducts, categories }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none" className="text-gray-500 italic">Uncategorized (No Category)</SelectItem>
-                  {categories.map(c => (
+                  {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Current Stock</label>
+              <Input type="number" name="stock" defaultValue={editingProduct?.stock || "100"} required />
             </div>
             
             <div className="space-y-2">
@@ -144,58 +141,27 @@ export default function ProductsClient({ initialProducts, categories }) {
               <label className="text-sm font-semibold text-gray-700">Wholesale Unit (Optional)</label>
               <Input name="shopkeeper_unit" defaultValue={editingProduct?.shopkeeper_unit || ""} placeholder="e.g. 1 Box (Leave empty if same)" />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Retail Price (₹)</label>
-              <Input type="number" step="0.01" name="retail_price" defaultValue={editingProduct?.retail_price || ""} placeholder="0.00" required />
+              <Input type="number" step="0.01" name="retail_price" defaultValue={editingProduct?.retail_price} required />
             </div>
             
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Wholesale Price (₹)</label>
-              <Input type="number" step="0.01" name="wholesale_price" defaultValue={editingProduct?.shopkeeper_price || ""} placeholder="0.00" />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Current Stock</label>
-              <Input type="number" name="stock" defaultValue={editingProduct?.stock || "0"} required />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Retailer Limit</label>
-              <div className="flex gap-2">
-                <Select value={hasRetailLimit ? "set" : "no"} onValueChange={(v) => setHasRetailLimit(v === "set")}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no">No Limit</SelectItem>
-                    <SelectItem value="set">Set Limit</SelectItem>
-                  </SelectContent>
-                </Select>
-                {hasRetailLimit && (
-                  <Input type="number" name="retail_limit" defaultValue={editingProduct?.retail_limit || "5"} className="flex-1" required />
-                )}
-              </div>
+              <Input type="number" step="0.01" name="wholesale_price" defaultValue={editingProduct?.shopkeeper_price} />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Wholesaler Limit</label>
-              <div className="flex gap-2">
-                <Select value={hasWholesaleLimit ? "set" : "no"} onValueChange={(v) => setHasWholesaleLimit(v === "set")}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no">No Limit</SelectItem>
-                    <SelectItem value="set">Set Limit</SelectItem>
-                  </SelectContent>
-                </Select>
-                {hasWholesaleLimit && (
-                  <Input type="number" name="shopkeeper_limit" defaultValue={editingProduct?.shopkeeper_limit || "50"} className="flex-1" required />
-                )}
-              </div>
+              <label className="text-sm font-semibold text-gray-700">Retailer Limit (Optional)</label>
+              <Input type="number" name="retail_limit" defaultValue={editingProduct?.retail_limit > 0 ? editingProduct.retail_limit : ""} placeholder="Leave empty for No Limit" min="1" />
             </div>
-            
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Wholesaler Limit (Optional)</label>
+              <Input type="number" name="shopkeeper_limit" defaultValue={editingProduct?.shopkeeper_limit > 0 ? editingProduct.shopkeeper_limit : ""} placeholder="Leave empty for No Limit" min="1" />
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Status</label>
               <Select name="status" value={selectedStatus} onValueChange={setSelectedStatus}>
