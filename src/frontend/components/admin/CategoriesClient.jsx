@@ -50,7 +50,7 @@ export default function CategoriesClient({ categories }) {
 
   // Filter Data
   const filteredCategories = categories.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.name || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const resetForm = () => {

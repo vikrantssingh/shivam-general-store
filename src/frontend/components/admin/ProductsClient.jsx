@@ -26,15 +26,19 @@ export default function ProductsClient({ initialProducts, categories }) {
   // State for Selects to fix raw value display bug
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("true");
+  const [hasRetailLimit, setHasRetailLimit] = useState(false);
+  const [hasWholesaleLimit, setHasWholesaleLimit] = useState(false);
 
   const filteredProducts = initialProducts.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (p.name || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setSelectedCategoryId("");
     setSelectedStatus("true");
+    setHasRetailLimit(false);
+    setHasWholesaleLimit(false);
     setIsFormOpen(true);
   };
 
@@ -42,6 +46,10 @@ export default function ProductsClient({ initialProducts, categories }) {
     setEditingProduct(product);
     setSelectedCategoryId(product.category_id || "");
     setSelectedStatus(product.status !== false ? "true" : "false");
+    
+    setHasRetailLimit(product.retail_limit > 0);
+    setHasWholesaleLimit(product.shopkeeper_limit > 0);
+    
     setIsFormOpen(true);
   };
 
@@ -128,8 +136,13 @@ export default function ProductsClient({ initialProducts, categories }) {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Unit (e.g. 1kg, 500g)</label>
-              <Input name="unit" defaultValue={editingProduct?.unit || ""} placeholder="e.g. 1 kg" required />
+              <label className="text-sm font-semibold text-gray-700">Retail Unit</label>
+              <Input name="unit" defaultValue={editingProduct?.unit || ""} placeholder="e.g. 1 piece" required />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Wholesale Unit (Optional)</label>
+              <Input name="shopkeeper_unit" defaultValue={editingProduct?.shopkeeper_unit || ""} placeholder="e.g. 1 Box (Leave empty if same)" />
             </div>
             
             <div className="space-y-2">
@@ -145,6 +158,42 @@ export default function ProductsClient({ initialProducts, categories }) {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Current Stock</label>
               <Input type="number" name="stock" defaultValue={editingProduct?.stock || "0"} required />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Retailer Limit</label>
+              <div className="flex gap-2">
+                <Select value={hasRetailLimit ? "set" : "no"} onValueChange={(v) => setHasRetailLimit(v === "set")}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no">No Limit</SelectItem>
+                    <SelectItem value="set">Set Limit</SelectItem>
+                  </SelectContent>
+                </Select>
+                {hasRetailLimit && (
+                  <Input type="number" name="retail_limit" defaultValue={editingProduct?.retail_limit || "5"} className="flex-1" required />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Wholesaler Limit</label>
+              <div className="flex gap-2">
+                <Select value={hasWholesaleLimit ? "set" : "no"} onValueChange={(v) => setHasWholesaleLimit(v === "set")}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no">No Limit</SelectItem>
+                    <SelectItem value="set">Set Limit</SelectItem>
+                  </SelectContent>
+                </Select>
+                {hasWholesaleLimit && (
+                  <Input type="number" name="shopkeeper_limit" defaultValue={editingProduct?.shopkeeper_limit || "50"} className="flex-1" required />
+                )}
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -215,14 +264,37 @@ export default function ProductsClient({ initialProducts, categories }) {
               <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
                 <TableCell className="font-medium text-gray-900">{product.name}</TableCell>
                 <TableCell className="text-gray-600">{product.categories?.name || "Uncategorized"}</TableCell>
-                <TableCell className="text-gray-600">{product.unit}</TableCell>
+                <TableCell className="text-gray-600">
+                  {product.shopkeeper_unit && product.shopkeeper_unit !== product.unit ? (
+                    <div className="flex flex-col gap-0.5 text-xs">
+                      <span><span className="font-semibold">R:</span> {product.unit}</span>
+                      <span><span className="font-semibold">W:</span> {product.shopkeeper_unit}</span>
+                    </div>
+                  ) : (
+                    product.unit
+                  )}
+                </TableCell>
                 <TableCell>
                   <span className={`font-semibold px-2 py-1 rounded-md text-xs ${product.stock < 10 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-800'}`}>
                     {product.stock}
                   </span>
                 </TableCell>
-                <TableCell className="font-medium text-gray-900">₹{product.retail_price}</TableCell>
-                <TableCell className="text-gray-600">{product.shopkeeper_price ? `₹${product.shopkeeper_price}` : '-'}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900 whitespace-nowrap">₹{product.retail_price}</span>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap border ${product.retail_limit > 0 ? 'text-blue-600 bg-blue-50 border-blue-100' : 'text-red-600 bg-red-50 border-red-100'}`}>
+                      (Limit: {product.retail_limit > 0 ? product.retail_limit : "∞"})
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600 whitespace-nowrap">{product.shopkeeper_price ? `₹${product.shopkeeper_price}` : '-'}</span>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap border ${product.shopkeeper_limit > 0 ? 'text-blue-600 bg-blue-50 border-blue-100' : 'text-red-600 bg-red-50 border-red-100'}`}>
+                      (Limit: {product.shopkeeper_limit > 0 ? product.shopkeeper_limit : "∞"})
+                    </span>
+                  </div>
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline" className={
                     product.status ? "border-green-200 bg-green-50 text-green-700 font-semibold" : "border-red-200 bg-red-50 text-red-700 font-semibold"

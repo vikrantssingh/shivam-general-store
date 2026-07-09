@@ -2,9 +2,12 @@ import ProductCard from "@/frontend/components/product/ProductCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/backend/supabase/server";
+import Link from "next/link";
 
-export default async function StorefrontHome() {
+export default async function StorefrontHome({ searchParams }) {
   const supabase = createClient();
+  const q = searchParams?.q || "";
+  const categoryId = searchParams?.category || "all";
 
   // Check if user is an approved shopkeeper
   const { data: { user } } = await supabase.auth.getUser();
@@ -16,24 +19,33 @@ export default async function StorefrontHome() {
     }
   }
 
-  // Fetch categories
+  // Fetch categories (removed status filter so all show up)
   const { data: categories } = await supabase
     .from("categories")
     .select("*")
-    .eq("status", true)
     .order("name");
 
   // Fetch products
-  const { data: products } = await supabase
+  let productsQuery = supabase
     .from("products")
     .select("*")
     .eq("status", true)
     .order("created_at", { ascending: false });
 
+  if (categoryId && categoryId !== "all") {
+    productsQuery = productsQuery.eq("category_id", categoryId);
+  }
+  
+  if (q) {
+    productsQuery = productsQuery.ilike("name", `%${q}%`);
+  }
+
+  const { data: products } = await productsQuery;
+
   // Use a fallback if categories are empty
   const displayCategories = categories && categories.length > 0 
-    ? [{ name: "All" }, ...categories]
-    : [{ name: "All" }];
+    ? [{ id: "all", name: "All" }, ...categories]
+    : [{ id: "all", name: "All" }];
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6">
@@ -58,16 +70,20 @@ export default async function StorefrontHome() {
         <h2 className="text-lg font-bold text-gray-900 mb-4">Shop by Category</h2>
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex w-max space-x-4 pb-4">
-            {displayCategories.map((category, i) => (
-              <div 
-                key={category.name} 
-                className={`flex cursor-pointer flex-col items-center justify-center rounded-xl p-3 px-5 transition-colors ${
-                  i === 0 ? "bg-green-700 text-white" : "bg-white border border-gray-100 hover:bg-green-50 text-gray-600"
-                }`}
-              >
-                <span className="text-sm font-semibold">{category.name}</span>
-              </div>
-            ))}
+            {displayCategories.map((category) => {
+              const isActive = categoryId === category.id;
+              return (
+                <Link 
+                  href={`/?category=${category.id}${q ? `&q=${q}` : ''}`}
+                  key={category.id || category.name} 
+                  className={`flex flex-col items-center justify-center rounded-xl p-3 px-5 transition-colors ${
+                    isActive ? "bg-green-700 text-white shadow-md" : "bg-white border border-gray-100 hover:bg-green-50 text-gray-600 shadow-sm"
+                  }`}
+                >
+                  <span className="text-sm font-semibold">{category.name}</span>
+                </Link>
+              );
+            })}
           </div>
           <ScrollBar orientation="horizontal" className="hidden" />
         </ScrollArea>
@@ -76,8 +92,10 @@ export default async function StorefrontHome() {
       {/* Product Grid */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Top Offers on Daily Essentials</h2>
-          <span className="text-sm font-semibold text-green-700 cursor-pointer hover:underline">View All</span>
+          <h2 className="text-lg font-bold text-gray-900">
+            {q ? `Search Results for "${q}"` : "Top Offers on Daily Essentials"}
+          </h2>
+          {!q && <span className="text-sm font-semibold text-green-700 cursor-pointer hover:underline">View All</span>}
         </div>
         
         {products && products.length > 0 ? (
@@ -96,15 +114,19 @@ export default async function StorefrontHome() {
                 ? Math.round(((displayMrp - effectivePrice) / displayMrp) * 100) 
                 : 0;
 
+              const maxLimit = isShopkeeper ? product.shopkeeper_limit : product.retail_limit;
+              const displayUnit = isShopkeeper && product.shopkeeper_unit ? product.shopkeeper_unit : product.unit;
+
               return (
                 <ProductCard key={product.id} product={{
                   id: product.id,
                   name: product.name,
-                  unit: product.unit,
+                  unit: displayUnit,
                   price: effectivePrice,
                   mrp: displayMrp,
                   discount: discount,
-                  image_url: product.image_url
+                  image_url: product.image_url,
+                  maxLimit: maxLimit
                 }} />
               );
             })}

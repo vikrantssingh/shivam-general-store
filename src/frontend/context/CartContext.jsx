@@ -32,6 +32,13 @@ export function CartProvider({ children }) {
   const addToCart = (product, quantity = 1) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
+      
+      const currentQty = existingItem ? existingItem.quantity : 0;
+      if (product.maxLimit > 0 && currentQty + quantity > product.maxLimit) {
+        toast.error(`Cannot add more. Max limit reached.`);
+        return prevCart;
+      }
+
       if (existingItem) {
         toast.success(`Updated ${product.name} quantity.`);
         return prevCart.map((item) =>
@@ -53,11 +60,16 @@ export function CartProvider({ children }) {
       removeFromCart(productId);
       return;
     }
-    setCart((prevCart) =>
-      prevCart.map((item) =>
+    setCart((prevCart) => {
+      const item = prevCart.find((i) => i.id === productId);
+      if (item && item.maxLimit > 0 && newQuantity > item.maxLimit) {
+        toast.error(`Cannot exceed max purchase limit.`);
+        return prevCart;
+      }
+      return prevCart.map((item) =>
         item.id === productId ? { ...item, quantity: newQuantity } : item
-      )
-    );
+      );
+    });
   };
 
   const clearCart = () => {

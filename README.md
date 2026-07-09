@@ -44,7 +44,11 @@ This platform empowers the shop owner to transition their entire brick-and-morta
 The Owner/Admin has absolute control over the platform via a secure, protected dashboard route (`/admin`).
 
 - **Executive Dashboard:** Live metrics including Today's Revenue, Order Volume, Total Customers, and Low Stock Alerts visualized via Recharts.
-- **Product Management:** Full CRUD capabilities for the inventory. Set distinct Retail vs. Wholesale prices.
+- **Advanced Product Management:** 
+  - Full CRUD capabilities for the inventory.
+  - Set distinct Retail vs. Wholesale prices.
+  - **Dynamic Purchase Limits:** Enforce maximum purchase limits per order, customizable separately for Retailers and Wholesalers.
+  - **Dual Units of Measurement:** Define separate packaging units for Retail (e.g., 1 Piece) and Wholesale (e.g., 1 Box).
 - **Order Management:** View all incoming orders, distinguish between Retail and Shopkeeper purchases, and manually update fulfillment statuses.
 - **Customer & Approvals:** Tabbed interface to review the customer base and actively Approve or Reject pending Shopkeeper registrations.
 - **Store Settings:** Toggle Home Delivery or Store Pickup globally, and dynamically adjust Free Delivery thresholds and delivery charges.

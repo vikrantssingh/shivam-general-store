@@ -32,8 +32,8 @@ export default function OrdersClient({ initialOrders }) {
   const [loadingId, setLoadingId] = useState(null);
 
   const filteredOrders = initialOrders.filter(o => 
-    o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.users?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    (o.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (o.users?.full_name || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleStatusChange = async (orderId, currentStatus, newStatus) => {

@@ -5,9 +5,31 @@ import { Menu, Search, ShoppingCart, User, LogOut, Package } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/frontend/context/CartContext";
 import { logoutAction } from "@/backend/actions/auth";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export default function Header({ user, isAdmin }) {
   const { totalItems } = useCart();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || "");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const currentCategory = searchParams.get('category');
+    let url = '/?';
+    if (currentCategory) url += `category=${currentCategory}&`;
+    if (searchQuery.trim()) url += `q=${encodeURIComponent(searchQuery.trim())}`;
+    
+    // clean up trailing ? or &
+    if (url.endsWith('&') || url.endsWith('?')) {
+      url = url.slice(0, -1);
+    }
+    // if empty, just go to /
+    if (url === '') url = '/';
+
+    router.push(url);
+  };
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -44,10 +66,16 @@ export default function Header({ user, isAdmin }) {
             </Link>
           )}
 
-          <Button variant="ghost" size="icon" className="hidden sm:flex">
-            <Search className="h-5 w-5 text-gray-700" />
-            <span className="sr-only">Search</span>
-          </Button>
+          <form onSubmit={handleSearch} className="hidden sm:flex relative">
+            <input 
+              type="search" 
+              placeholder="Search products..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-48 lg:w-64 rounded-full border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
+            />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          </form>
           
           <Link href="/cart" className="relative hidden md:flex">
             <Button variant="ghost" size="icon" title="Cart">
@@ -88,16 +116,17 @@ export default function Header({ user, isAdmin }) {
         </div>
       </div>
       
-      {/* Mobile Search Bar - Shows below header on small screens */}
       <div className="container mx-auto p-3 sm:hidden">
-        <div className="relative">
+        <form onSubmit={handleSearch} className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input 
             type="search" 
             placeholder="Search for products..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
           />
-        </div>
+        </form>
       </div>
     </header>
   );

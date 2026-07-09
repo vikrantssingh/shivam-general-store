@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/frontend/context/CartContext";
 
 export default function ProductCard({ product }) {
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
+  
+  const currentQty = cart?.find((item) => item.id === product.id)?.quantity || 0;
+  const isMaxLimitReached = product.maxLimit > 0 && currentQty >= product.maxLimit;
   return (
     <Card className="overflow-hidden border-gray-100 shadow-sm hover:shadow-md transition-shadow">
       <div className="relative aspect-square bg-gray-100 p-4">
@@ -40,10 +43,16 @@ export default function ProductCard({ product }) {
             size="sm" 
             className="h-8 rounded-full bg-green-700 px-3 hover:bg-green-800 text-xs font-semibold"
             onClick={() => addToCart(product)}
+            disabled={isMaxLimitReached}
           >
-            ADD
+            {isMaxLimitReached ? "MAXED" : "ADD"}
           </Button>
         </div>
+        {isMaxLimitReached && (
+          <p className="mt-2 text-[10px] font-semibold text-red-600 leading-tight">
+            This item reached to its max limit. Contact owner.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

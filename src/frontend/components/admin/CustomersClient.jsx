@@ -27,10 +27,10 @@ export default function CustomersClient({ users }) {
 
   const filterData = (data) => {
     return data.filter(u => 
-      u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.phone?.includes(searchTerm) ||
-      u.business_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      (u.full_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.phone || "").includes(searchTerm) ||
+      (u.business_name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 

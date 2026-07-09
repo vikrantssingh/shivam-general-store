@@ -16,11 +16,12 @@ export async function addProductAction(formData) {
   const name = formData.get("name");
   const category_id = formData.get("category_id");
   const unit = formData.get("unit");
+  const shopkeeper_unit = formData.get("shopkeeper_unit") || unit;
   const retail_price = parseFloat(formData.get("retail_price"));
   const wholesale_price = parseFloat(formData.get("wholesale_price"));
   const stock = parseInt(formData.get("stock"));
-  const retail_limit = parseInt(formData.get("retail_limit") || "5");
-  const shopkeeper_limit = parseInt(formData.get("shopkeeper_limit") || "50");
+  const retail_limit = parseInt(formData.get("retail_limit") || "0");
+  const shopkeeper_limit = parseInt(formData.get("shopkeeper_limit") || "0");
   const status = formData.get("status") === "true";
   const imageFile = formData.get("image");
 
@@ -51,6 +52,7 @@ export async function addProductAction(formData) {
     name,
     category_id: (!category_id || category_id === "none") ? null : category_id,
     unit,
+    shopkeeper_unit,
     retail_price,
     shopkeeper_price: wholesale_price || null,
     stock,
@@ -81,11 +83,12 @@ export async function updateProductAction(formData) {
   const name = formData.get("name");
   const category_id = formData.get("category_id");
   const unit = formData.get("unit");
+  const shopkeeper_unit = formData.get("shopkeeper_unit") || unit;
   const retail_price = parseFloat(formData.get("retail_price"));
   const wholesale_price = parseFloat(formData.get("wholesale_price"));
   const stock = parseInt(formData.get("stock"));
-  const retail_limit = parseInt(formData.get("retail_limit") || "5");
-  const shopkeeper_limit = parseInt(formData.get("shopkeeper_limit") || "50");
+  const retail_limit = parseInt(formData.get("retail_limit") || "0");
+  const shopkeeper_limit = parseInt(formData.get("shopkeeper_limit") || "0");
   const status = formData.get("status") === "true";
   const imageFile = formData.get("image");
 
@@ -117,6 +120,7 @@ export async function updateProductAction(formData) {
     name,
     category_id: (!category_id || category_id === "none") ? null : category_id,
     unit,
+    shopkeeper_unit,
     retail_price,
     shopkeeper_price: wholesale_price || null,
     stock,
