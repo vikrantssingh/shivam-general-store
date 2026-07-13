@@ -16,7 +16,7 @@ import { createClient } from "@/backend/supabase/client";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, totalPrice, clearCart } = useCart();
+  const { cart, totalPrice, clearCart, updateEntireCart } = useCart();
   
   const [isPending, setIsPending] = useState(false);
   const [deliveryType, setDeliveryType] = useState("home_delivery");
@@ -80,7 +80,12 @@ export default function CheckoutPage() {
     setIsPending(false);
 
     if (result?.error) {
-      toast.error(result.error);
+      if (result.error === "CART_UPDATED") {
+        updateEntireCart(result.correctedCart);
+        toast.error(result.message, { duration: 6000 });
+      } else {
+        toast.error(result.error);
+      }
     } else {
       toast.success("Order placed successfully!");
       clearCart();

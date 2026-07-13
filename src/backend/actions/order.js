@@ -12,9 +12,72 @@ export async function placeOrderAction(orderData, cartItems) {
     return { error: "You must be logged in to place an order." };
   }
 
-  // Calculate total amount from cart items to prevent client-side tampering
-  // (In a real app, you'd fetch prices from DB again, but for this MVP we'll use the cart prices)
-  const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  // Verify role and cart
+  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
+  const isShopkeeper = profile?.role === "shopkeeper_approved";
+
+  // Fetch LIVE product data
+  const productIds = cartItems.map(item => item.id);
+  const { data: dbProducts } = await supabase.from("products").select("*").in("id", productIds);
+
+  let cartUpdated = false;
+  const correctedCart = cartItems.map(cartItem => {
+    const dbProduct = dbProducts?.find(p => p.id === cartItem.id);
+    if (!dbProduct || dbProduct.status === false) {
+      cartUpdated = true;
+      return null;
+    }
+
+    const actualPrice = isShopkeeper && dbProduct.shopkeeper_price 
+        ? dbProduct.shopkeeper_price 
+        : dbProduct.retail_price;
+
+    const actualLimit = isShopkeeper 
+        ? Number(dbProduct.shopkeeper_limit || 0)
+        : Number(dbProduct.retail_limit || 0);
+
+    let newQty = Number(cartItem.quantity || 1);
+    
+    if (actualLimit > 0 && newQty > actualLimit) {
+        newQty = actualLimit;
+        cartUpdated = true;
+    }
+
+    if (cartItem.maxLimit !== actualLimit) {
+        cartUpdated = true;
+    }
+
+    if (cartItem.price !== actualPrice) {
+        cartUpdated = true;
+    }
+    
+    const actualUnit = isShopkeeper && dbProduct.shopkeeper_unit ? dbProduct.shopkeeper_unit : dbProduct.unit;
+    if (cartItem.unit !== actualUnit || cartItem.name !== dbProduct.name) {
+       cartUpdated = true;
+    }
+
+    return {
+        ...cartItem,
+        id: dbProduct.id,
+        name: dbProduct.name,
+        price: actualPrice,
+        maxLimit: actualLimit,
+        quantity: newQty,
+        unit: actualUnit,
+        image_url: dbProduct.image_url
+    };
+  }).filter(Boolean);
+
+  if (cartUpdated || correctedCart.length !== cartItems.length) {
+     return { 
+         error: "CART_UPDATED", 
+         message: "Some items were updated due to recent price, limit, or availability changes by the admin. Please review your new bill and try again.", 
+         correctedCart 
+     };
+  }
+
+  // Calculate total amount from correctedCart
+  const totalAmount = correctedCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   // Create the Order
   const { data: order, error: orderError } = await supabase
@@ -37,7 +100,7 @@ export async function placeOrderAction(orderData, cartItems) {
   }
 
   // Create Order Items
-  const orderItemsData = cartItems.map((item) => ({
+  const orderItemsData = correctedCart.map((item) => ({
     order_id: order.id,
     product_id: item.id,
     quantity: item.quantity,
