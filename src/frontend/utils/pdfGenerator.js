@@ -11,8 +11,8 @@ export function downloadThermalReceipt(order, profile) {
   // Calculate exact height using a dummy doc to prevent bottom paper waste
   const dummyDoc = new jsPDF({ orientation: "portrait", unit: "mm", format: [58, 1000] });
   autoTable(dummyDoc, {
-    startY: 25,
-    margin: { left: 2, right: 2 },
+    startY: 15,
+    margin: { left: 2, right: 2, bottom: 2 },
     head: [[
       { content: 'Item', styles: { halign: 'left' } },
       { content: 'Q', styles: { halign: 'right' } },
@@ -20,12 +20,14 @@ export function downloadThermalReceipt(order, profile) {
     ]],
     body: tableData,
     theme: 'plain',
-    styles: { fontSize: 11, cellPadding: 1, font: "helvetica" },
+    styles: { fontSize: 11, cellPadding: { top: 0.4, bottom: 0.4, left: 1, right: 1 }, font: "helvetica" },
     columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 8, halign: 'right' }, 2: { cellWidth: 14, halign: 'right' } }
   });
   
   const estimatedFinalY = dummyDoc.lastAutoTable.finalY || 25;
-  const exactHeight = Math.max(estimatedFinalY + 10, 65); // Enforce min height so jsPDF doesn't swap width/height
+  const deliveryCharge = order.delivery_type === 'home_delivery' ? 40 : 0;
+  const extraHeight = deliveryCharge > 0 ? 20 : 10; // Allocate extra space if delivery charge exists
+  const exactHeight = Math.max(estimatedFinalY + extraHeight, 65); // Enforce min height so jsPDF doesn't swap width/height
 
   // Real document with exact height
   const doc = new jsPDF({
@@ -46,7 +48,7 @@ export function downloadThermalReceipt(order, profile) {
   };
 
   // Header
-  centerText("SHIVAM GENERAL STORE", 10, 11, true);
+  centerText("SHIVAM GENERAL STORE", 6, 11, true);
 
   // Order Details
   doc.setFontSize(11);
@@ -56,23 +58,23 @@ export function downloadThermalReceipt(order, profile) {
   const dateObj = new Date(order.created_at);
   const dateStr = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear().toString().slice(-2)}, ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
   
-  doc.text(orderId, 3, 17);
-  doc.text(dateStr, 55, 17, { align: "right" });
+  doc.text(orderId, 3, 12);
+  doc.text(dateStr, 55, 12, { align: "right" });
 
   const pName = profile?.full_name || order.profiles?.full_name || "CUSTOMER";
   const customerName = pName.toUpperCase().substring(0, 18);
   const customerPhone = profile?.phone || order.profiles?.phone || "";
   
   doc.setFont("helvetica", "bold");
-  doc.text(customerName, 3, 22);
+  doc.text(customerName, 3, 17);
   if (customerPhone) {
-    doc.text(customerPhone, 55, 22, { align: "right" });
+    doc.text(customerPhone, 55, 17, { align: "right" });
   }
 
   // Table
   autoTable(doc, {
-    startY: 25, // Closed the gap after customer name (was 28 originally)
-    margin: { left: 2, right: 2 },
+    startY: 20, // Closed the gap after customer name (was 28 originally)
+    margin: { left: 2, right: 2, bottom: 2 },
     head: [[
       { content: 'Item', styles: { halign: 'left' } },
       { content: 'Q', styles: { halign: 'right' } },
@@ -82,7 +84,7 @@ export function downloadThermalReceipt(order, profile) {
     theme: 'plain',
     styles: {
       fontSize: 11,
-      cellPadding: 1, 
+      cellPadding: { top: 0.4, bottom: 0.4, left: 1, right: 1 }, 
       font: "helvetica",
       textColor: 20
     },
@@ -99,12 +101,26 @@ export function downloadThermalReceipt(order, profile) {
 
   const finalY = doc.lastAutoTable.finalY || 25;
 
-  // Total
-  const grandTotal = Number(order.total_amount) + (order.delivery_type === 'home_delivery' ? 40 : 0);
+  // Total Breakdown
+  const subTotal = Number(order.total_amount);
+  const grandTotal = subTotal + deliveryCharge;
+  
+  let currentY = finalY + 5;
   doc.setFontSize(11);
-  doc.setFont("helvetica", "bold"); // Bolded Total as per screenshot
-  doc.text("Total:", 3, finalY + 5); // Closed the gap after table (was finalY + 9 originally)
-  doc.text(`${grandTotal.toFixed(2)}`, 55, finalY + 5, { align: "right" });
+
+  if (deliveryCharge > 0) {
+    doc.setFont("helvetica", "normal");
+    doc.text("Items Total:", 3, currentY);
+    doc.text(`${subTotal.toFixed(2)}`, 55, currentY, { align: "right" });
+    currentY += 4;
+    doc.text("Delivery:", 3, currentY);
+    doc.text(`${deliveryCharge.toFixed(2)}`, 55, currentY, { align: "right" });
+    currentY += 5; // small gap before grand total
+  }
+
+  doc.setFont("helvetica", "bold"); 
+  doc.text("Total:", 3, currentY); 
+  doc.text(`${grandTotal.toFixed(2)}`, 55, currentY, { align: "right" });
 
   doc.save(`bill_${orderId.replace('#', '')}.pdf`);
 }
