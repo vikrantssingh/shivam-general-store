@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Grid, ShoppingCart, Users, Settings, LogOut, Bell, Truck } from "lucide-react";
+import { LayoutDashboard, Package, Grid, ShoppingCart, Users, Settings, LogOut, Truck, Menu } from "lucide-react";
 import { logoutAction } from "@/backend/actions/auth";
+import NotificationBell from "@/components/admin/NotificationBell";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
@@ -19,10 +22,17 @@ export default function AdminLayout({ children }) {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r bg-white flex flex-col shadow-sm">
-        <div className="flex h-16 items-center border-b px-6">
+    <div className="flex min-h-screen bg-gray-50 overflow-hidden">
+      {/* Top Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center bg-white shadow-sm border-b">
+        {/* Logo and Menu Button */}
+        <div className="flex h-16 w-64 items-center px-4 border-r border-gray-200 shrink-0">
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 mr-3 text-gray-500 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-200 shrink-0"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
           <Link href="/admin" className="flex flex-col">
             <span className="text-xl font-extrabold tracking-tight text-gray-900 leading-none">
               ADMIN
@@ -33,6 +43,28 @@ export default function AdminLayout({ children }) {
           </Link>
         </div>
         
+        {/* Top Right Header Content */}
+        <div className="flex flex-1 items-center justify-between px-4 md:px-8">
+          <h1 className="text-xl font-bold text-gray-800">Admin Portal</h1>
+          <div className="flex items-center gap-4 ml-auto">
+            <NotificationBell />
+            <div className="h-8 w-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-xs">
+              AD
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30 md:hidden top-16 transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Navigation */}
+      <aside className={`fixed top-16 bottom-0 left-0 z-40 w-64 border-r bg-white flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -66,23 +98,9 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 pl-64">
-        {/* Top Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-white px-8 shadow-sm">
-          <h1 className="text-xl font-bold text-gray-800">Admin Portal</h1>
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-red-600"></span>
-            </button>
-            <div className="h-8 w-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-xs">
-              AD
-            </div>
-          </div>
-        </header>
-
+      <main className={`flex-1 w-full pt-16 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'md:pl-64' : 'pl-0'}`}>
         {/* Page Content */}
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           {children}
         </div>
       </main>
