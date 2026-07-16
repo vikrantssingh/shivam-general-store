@@ -26,7 +26,7 @@ export function downloadThermalReceipt(order, profile) {
   
   const estimatedFinalY = dummyDoc.lastAutoTable.finalY || 25;
   const deliveryCharge = order.delivery_type === 'home_delivery' ? 40 : 0;
-  const extraHeight = deliveryCharge > 0 ? 20 : 10; // Allocate extra space if delivery charge exists
+  const extraHeight = deliveryCharge > 0 ? 15 : 15; // Allocate extra space if delivery charge exists
   const exactHeight = Math.max(estimatedFinalY + extraHeight, 65); // Enforce min height so jsPDF doesn't swap width/height
 
   // Real document with exact height
