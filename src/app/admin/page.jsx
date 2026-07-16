@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, ShoppingCart, IndianRupee, Users } from "lucide-react";
 import DashboardCharts from "./_components/DashboardCharts";
+import RevenueHistorySection from "./_components/RevenueHistorySection";
 import { getDashboardStats, getDashboardCharts } from "@/backend/actions/admin-dashboard";
 
 export default async function AdminDashboard() {
@@ -73,6 +74,9 @@ export default async function AdminDashboard() {
 
       {/* Charts Area */}
       <DashboardCharts salesData={salesData} orderData={orderData} />
+      
+      {/* Revenue History with Filters */}
+      <RevenueHistorySection />
     </div>
   );
 }

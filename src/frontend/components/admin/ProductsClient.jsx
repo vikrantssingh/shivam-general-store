@@ -192,7 +192,7 @@ export default function ProductsClient({ initialProducts, categories }) {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your store's inventory, pricing, and limits.</p>
+          <p className="text-sm text-gray-500 mt-1">Manage your store&apos;s inventory, pricing, and limits.</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700 font-semibold shadow-sm" onClick={handleOpenAdd}>
           <Plus className="mr-2 h-4 w-4" /> Add New Product
@@ -288,7 +288,7 @@ export default function ProductsClient({ initialProducts, categories }) {
                       <Search className="h-6 w-6 text-gray-400" />
                     </div>
                     <p className="font-medium text-gray-900">No products found</p>
-                    <p className="text-sm">Click "Add New Product" to create your first item.</p>
+                    <p className="text-sm">Click &quot;Add New Product&quot; to create your first item.</p>
                   </div>
                 </TableCell>
               </TableRow>

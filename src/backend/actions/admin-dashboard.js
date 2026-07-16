@@ -280,3 +280,73 @@ export async function getNotifications() {
     return { error: "Failed to load notifications" };
   }
 }
+
+export async function getRevenueHistory(period = '1w') {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Unauthorized" };
+
+  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
+  if (!profile || profile.role !== "admin") return { error: "Unauthorized" };
+
+  try {
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+
+    let daysToFetch = 7;
+    if (period === '1w') daysToFetch = 7;
+    else if (period === '2w') daysToFetch = 14;
+    else if (period === '1m') daysToFetch = 30;
+    else if (period === '3m') daysToFetch = 90;
+
+    startDate.setDate(startDate.getDate() - (daysToFetch - 1));
+
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select("total_amount, created_at")
+      .gte("created_at", startDate.toISOString())
+      .neq("status", "cancelled");
+
+    if (error) throw error;
+
+    const dailyDataMap = {};
+    
+    // Initialize map with all days to ensure 0s for days without orders
+    for (let i = 0; i < daysToFetch; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      const dateString = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+      dailyDataMap[dateString] = {
+        date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        day: dayName,
+        revenue: 0,
+        sortIndex: d.getTime()
+      };
+    }
+
+    if (orders) {
+      orders.forEach(order => {
+        const orderDate = new Date(order.created_at);
+        const dateString = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        if (dailyDataMap[dateString]) {
+          dailyDataMap[dateString].revenue += Number(order.total_amount);
+        }
+      });
+    }
+
+    const historyData = Object.values(dailyDataMap)
+      .sort((a, b) => a.sortIndex - b.sortIndex) // Sort oldest to newest for chart
+      .map(item => ({
+        date: item.date,
+        day: item.day,
+        revenue: item.revenue
+      }));
+
+    return { historyData };
+  } catch (error) {
+    console.error("Revenue History Error:", error);
+    return { error: "Failed to load revenue history" };
+  }
+}
