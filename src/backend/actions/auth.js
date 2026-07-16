@@ -3,7 +3,7 @@
 import { createClient } from "@/backend/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { loginSchema, retailRegisterSchema, shopkeeperRegisterSchema } from "@/backend/validations/auth";
+import { loginSchema, retailRegisterSchema, shopkeeperRegisterSchema, forgotPasswordSchema, resetPasswordSchema } from "@/backend/validations/auth";
 
 export async function loginAction(formData) {
   const supabase = createClient();
@@ -114,4 +114,40 @@ export async function logoutAction() {
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/login");
+}
+
+export async function forgotPasswordAction(formData) {
+  const supabase = createClient();
+  const validatedFields = forgotPasswordSchema.safeParse(formData);
+  
+  if (!validatedFields.success) return { error: "Invalid email" };
+
+  const { error } = await supabase.auth.resetPasswordForEmail(validatedFields.data.email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`,
+  });
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function resetPasswordAction(formData, code) {
+  const supabase = createClient();
+  const validatedFields = resetPasswordSchema.safeParse(formData);
+  
+  if (!validatedFields.success) return { error: "Invalid passwords" };
+
+  // If a code is provided in the URL, exchange it for a session first
+  if (code) {
+    const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+    if (sessionError) return { error: "Invalid or expired reset link. Please request a new one." };
+  }
+
+  // Update the user's password
+  const { error } = await supabase.auth.updateUser({
+    password: validatedFields.data.password
+  });
+
+  if (error) return { error: error.message };
+  
+  return { success: true };
 }
