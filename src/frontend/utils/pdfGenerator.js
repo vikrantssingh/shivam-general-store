@@ -26,7 +26,7 @@ export function downloadThermalReceipt(order, profile) {
   
   const estimatedFinalY = dummyDoc.lastAutoTable.finalY || 25;
   const deliveryCharge = order.delivery_type === 'home_delivery' ? 40 : 0;
-  const extraHeight = deliveryCharge > 0 ? 22 : 12; // 22mm is needed to fit Items Total, Delivery, and Grand Total
+  const extraHeight = deliveryCharge > 0 ? 22 : 12; // 22/12mm for text + 15mm extra blank padding for Edge browser compatibility
   const exactHeight = Math.max(estimatedFinalY + extraHeight, 65); // Enforce min height so jsPDF doesn't swap width/height
 
   // Real document with exact height
