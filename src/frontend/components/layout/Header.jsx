@@ -60,7 +60,7 @@ export default function Header({ user, isAdmin }) {
         <div className="flex items-center gap-2 md:gap-4">
           {isAdmin && (
             <Link href="/admin">
-              <Button variant="outline" size="sm" className="hidden sm:flex text-green-700 border-green-200 bg-green-50 hover:bg-green-100 font-bold">
+              <Button variant="outline" size="sm" className="flex text-xs sm:text-sm text-green-700 border-green-200 bg-green-50 hover:bg-green-100 font-bold px-2 sm:px-3">
                 Admin Panel
               </Button>
             </Link>
