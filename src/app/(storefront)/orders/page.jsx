@@ -39,7 +39,7 @@ export default async function CustomerOrdersPage() {
         <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
           <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
           <h2 className="text-lg font-bold text-gray-900">No orders yet</h2>
-          <p className="text-gray-500">You haven't placed any orders yet.</p>
+          <p className="text-gray-500">You haven&apos;t placed any orders yet.</p>
         </div>
       ) : (
         <div className="space-y-6">

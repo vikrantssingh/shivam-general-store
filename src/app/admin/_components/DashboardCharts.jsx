@@ -60,7 +60,7 @@ export default function DashboardCharts({ salesData, orderData }) {
 
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base font-bold text-gray-800">Today's Order Volume</CardTitle>
+          <CardTitle className="text-base font-bold text-gray-800">Today&apos;s Order Volume</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px] w-full">

@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-blue-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Today's Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">Today&apos;s Revenue</CardTitle>
             <IndianRupee className="h-8 w-8 text-blue-500" />
           </CardHeader>
           <CardContent>
@@ -38,7 +38,7 @@ export default async function AdminDashboard() {
         
         <Card className="border-l-4 border-l-green-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Today's Orders</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">Today&apos;s Orders</CardTitle>
             <ShoppingCart className="h-8 w-8 text-green-500" />
           </CardHeader>
           <CardContent>
