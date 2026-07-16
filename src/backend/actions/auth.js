@@ -19,7 +19,7 @@ export async function loginAction(formData) {
 
   const { email, password } = validatedFields.data;
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -28,8 +28,20 @@ export async function loginAction(formData) {
     return { error: error.message };
   }
 
+  // Fetch the user's role to determine redirect destination
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", authData.user.id)
+    .single();
+
   revalidatePath("/", "layout");
-  redirect("/");
+  
+  if (profile && profile.role === "admin") {
+    redirect("/admin");
+  } else {
+    redirect("/");
+  }
 }
 
 export async function registerRetailAction(formData) {
