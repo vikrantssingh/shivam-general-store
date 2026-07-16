@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Printer, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import PrintBillButton from "@/frontend/components/storefront/PrintBillButton";
 
 export default async function OrderBillPage({ params }) {
   const { id } = params;
@@ -67,16 +68,7 @@ export default async function OrderBillPage({ params }) {
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to Orders
             </Button>
           </Link>
-          <Button 
-            className="bg-green-700 hover:bg-green-800 text-white font-bold"
-            // Use client-side JS to print
-            // We use a small script hack since this is a server component, or just use a small Client Component wrapper
-            // Actually, we can just use an inline onClick in a client component, but since this is SC, we'll just output standard JS
-            // Wait, onClick doesn't work in SC. Let's make this page a client component? No, data fetching is good here.
-            // I'll add a tiny client component for the print button below.
-          >
-            <Printer className="h-4 w-4 mr-2" /> Download / Print Bill
-          </Button>
+          <PrintBillButton order={order} profile={order.users} />
         </div>
 
         {/* The Bill / Invoice */}
@@ -178,12 +170,6 @@ export default async function OrderBillPage({ params }) {
         </div>
       </div>
       
-      {/* We inject a tiny script to handle the print button click */}
-      <script dangerouslySetInnerHTML={{__html: `
-        document.querySelector('button.bg-green-700').addEventListener('click', function() {
-          window.print();
-        });
-      `}} />
     </div>
   );
 }

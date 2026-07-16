@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Package, Truck, Store, Clock, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Package, Truck, Store, Clock, CheckCircle, ChevronDown, ChevronUp, Download } from "lucide-react";
 import Link from "next/link";
+import { downloadThermalReceipt } from "@/frontend/utils/pdfGenerator";
 
 const statusConfig = {
   placed: { color: "bg-blue-50 text-blue-700 border-blue-200", label: "Order Placed", icon: Package },
@@ -43,9 +44,12 @@ export default function OrderCard({ order }) {
               <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total</p>
               <p className="text-sm font-bold text-gray-900">₹{grandTotal}</p>
             </div>
-            <Link href={`/orders/${order.id}/bill`} className="text-sm font-bold text-green-700 hover:text-green-800 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-lg transition-colors inline-flex items-center">
+            <Link href={`/orders/${order.id}/bill`} className="text-sm font-bold text-green-700 hover:text-green-800 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-lg transition-colors inline-flex items-center hidden sm:inline-flex">
               View Bill
             </Link>
+            <button onClick={() => downloadThermalReceipt(order)} className="text-sm font-bold text-white bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-1.5">
+              <Download className="h-4 w-4" /> Download Bill
+            </button>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-3">
