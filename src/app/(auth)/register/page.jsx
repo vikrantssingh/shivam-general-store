@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Store, User } from "lucide-react";
+import { Loader2, Store, User, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const [accountType, setAccountType] = useState(null); // 'retail' or 'shopkeeper'
   const [isPending, setIsPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const retailForm = useForm({
     resolver: zodResolver(retailRegisterSchema),
@@ -135,12 +137,22 @@ export default function RegisterPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Password</label>
-                <Input type="password" {...retailForm.register("password")} placeholder="Create a password" className="bg-gray-50 focus-visible:ring-green-500" />
+                <div className="relative">
+                  <Input type={showPassword ? "text" : "password"} {...retailForm.register("password")} placeholder="Create a password" className="bg-gray-50 focus-visible:ring-green-500 pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {retailForm.formState.errors.password && <p className="text-xs text-red-500">{retailForm.formState.errors.password.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Confirm Password</label>
-                <Input type="password" {...retailForm.register("confirmPassword")} placeholder="Confirm your password" className="bg-gray-50 focus-visible:ring-green-500" />
+                <div className="relative">
+                  <Input type={showConfirmPassword ? "text" : "password"} {...retailForm.register("confirmPassword")} placeholder="Confirm your password" className="bg-gray-50 focus-visible:ring-green-500 pr-10" />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {retailForm.formState.errors.confirmPassword && <p className="text-xs text-red-500">{retailForm.formState.errors.confirmPassword.message}</p>}
               </div>
               <Button type="submit" className="w-full bg-green-700 hover:bg-green-800 text-white font-bold h-11 mt-6" disabled={isPending}>
@@ -180,12 +192,22 @@ export default function RegisterPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Password</label>
-                <Input type="password" {...shopkeeperForm.register("password")} placeholder="Create a password" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <div className="relative">
+                  <Input type={showPassword ? "text" : "password"} {...shopkeeperForm.register("password")} placeholder="Create a password" className="bg-gray-50 focus-visible:ring-purple-500 pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {shopkeeperForm.formState.errors.password && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.password.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Confirm Password</label>
-                <Input type="password" {...shopkeeperForm.register("confirmPassword")} placeholder="Confirm your password" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <div className="relative">
+                  <Input type={showConfirmPassword ? "text" : "password"} {...shopkeeperForm.register("confirmPassword")} placeholder="Confirm your password" className="bg-gray-50 focus-visible:ring-purple-500 pr-10" />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {shopkeeperForm.formState.errors.confirmPassword && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.confirmPassword.message}</p>}
               </div>
               <Button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold h-11 mt-6" disabled={isPending}>
