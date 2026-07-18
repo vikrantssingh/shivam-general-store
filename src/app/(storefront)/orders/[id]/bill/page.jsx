@@ -105,7 +105,7 @@ export default async function OrderBillPage({ params }) {
                 <tr key={item.id}>
                   <td className="py-0.5 align-top pr-1">{item.products?.name || "Item"}</td>
                   <td className="py-0.5 text-right align-top">{item.quantity}</td>
-                  <td className="py-0.5 text-right align-top">{item.price_at_time}</td>
+                  <td className="py-0.5 text-right align-top">{item.quantity * item.price_at_time}</td>
                 </tr>
               ))}
             </tbody>

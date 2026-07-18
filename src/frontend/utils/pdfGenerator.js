@@ -12,7 +12,7 @@ export function downloadThermalReceipt(order, profile) {
   const tableData = order.order_items?.map(item => [
     sanitizeText(item.products?.name), 
     item.quantity.toString(),
-    item.price_at_time.toString()
+    (item.quantity * item.price_at_time).toString()
   ]) || [];
 
   // Calculate exact height using a dummy doc to prevent bottom paper waste
@@ -27,7 +27,7 @@ export function downloadThermalReceipt(order, profile) {
     ]],
     body: tableData,
     theme: 'plain',
-    styles: { fontSize: 11, cellPadding: { top: 0.4, bottom: 0.4, left: 1, right: 1 }, font: "helvetica" },
+    styles: { fontSize: 11, cellPadding: { top: 0.2, bottom: 0.2, left: 1, right: 1 }, font: "helvetica" },
     columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 8, halign: 'right' }, 2: { cellWidth: 14, halign: 'right' } }
   });
   
@@ -91,7 +91,7 @@ export function downloadThermalReceipt(order, profile) {
     theme: 'plain',
     styles: {
       fontSize: 11,
-      cellPadding: { top: 0.4, bottom: 0.4, left: 1, right: 1 }, 
+      cellPadding: { top: 0.2, bottom: 0.2, left: 1, right: 1 }, 
       font: "helvetica",
       textColor: 20
     },
