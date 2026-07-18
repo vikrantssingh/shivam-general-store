@@ -16,6 +16,13 @@ export default async function CustomerOrdersPage() {
     .from("orders")
     .select(`
       *,
+      users (
+        full_name,
+        email,
+        phone,
+        business_name,
+        gst_number
+      ),
       order_items (
         id,
         quantity,

@@ -47,7 +47,7 @@ export default function OrderCard({ order }) {
             <Link href={`/orders/${order.id}/bill`} className="text-sm font-bold text-green-700 hover:text-green-800 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-lg transition-colors inline-flex items-center hidden sm:inline-flex">
               View Bill
             </Link>
-            <button onClick={() => downloadThermalReceipt(order)} className="text-sm font-bold text-white bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-1.5">
+            <button onClick={() => downloadThermalReceipt(order, order.users)} className="text-sm font-bold text-white bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-1.5">
               <Download className="h-4 w-4" /> Download Bill
             </button>
           </div>

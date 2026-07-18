@@ -2,8 +2,15 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export function downloadThermalReceipt(order, profile) {
+  // Sanitize text to remove non-ASCII characters that break jsPDF's default Helvetica font
+  const sanitizeText = (text) => {
+    if (!text) return "Item";
+    const cleaned = text.replace(/[^\x20-\x7E]/g, "").trim();
+    return cleaned || "Item";
+  };
+
   const tableData = order.order_items?.map(item => [
-    item.products?.name || "Item", 
+    sanitizeText(item.products?.name), 
     item.quantity.toString(),
     item.price_at_time.toString()
   ]) || [];
