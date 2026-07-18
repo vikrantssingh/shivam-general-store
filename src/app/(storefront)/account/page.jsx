@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { User, CheckCircle, Clock, XCircle, Package } from "lucide-react";
 import { logoutAction } from "@/backend/actions/auth";
 import { Button } from "@/components/ui/button";
+import { ProfileForm } from "./ProfileForm";
 
 export default async function AccountPage() {
   const supabase = createClient();
@@ -61,8 +62,12 @@ export default async function AccountPage() {
       <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
         <div className="flex items-center justify-between border-b pb-6 mb-6">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
-              <User className="h-8 w-8 text-green-700" />
+            <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border border-green-200">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-8 w-8 text-green-700" />
+              )}
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{profile?.full_name || "My Account"}</h1>
@@ -74,18 +79,7 @@ export default async function AccountPage() {
         <div className="space-y-6">
           <div>
             <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Profile Details</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-xl">
-                <span className="text-xs text-gray-500 block">Phone Number</span>
-                <span className="font-medium text-gray-900">{profile?.phone || "Not provided"}</span>
-              </div>
-              {profile?.business_name && (
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <span className="text-xs text-gray-500 block">Business Name</span>
-                  <span className="font-medium text-gray-900">{profile.business_name}</span>
-                </div>
-              )}
-            </div>
+            <ProfileForm profile={profile} userEmail={user.email} />
           </div>
 
           {(profile?.role?.startsWith("shopkeeper") || profile?.role === "admin") && (
