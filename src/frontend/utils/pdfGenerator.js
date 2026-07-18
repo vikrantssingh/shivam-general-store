@@ -1,12 +1,14 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { robotoBase64 } from "./robotoFont";
 
 export function downloadThermalReceipt(order, profile) {
-  // Sanitize text to remove non-ASCII characters that break jsPDF's default Helvetica font
+  // Sanitize text to remove non-ASCII characters that break jsPDF's default Helvetica font, but keep ₹
   const sanitizeText = (text) => {
     if (!text) return "Item";
-    const cleaned = text.replace(/[^\x20-\x7E]/g, "").trim();
-    return cleaned || "Item";
+    // Allow standard text and the Rupee symbol
+    const cleaned = text.replace(/[^\x20-\x7E₹]/g, "").trim();
+    return cleaned.replace(/\s+/g, ' ') || "Item";
   };
 
   const tableData = order.order_items?.map(item => [
@@ -17,6 +19,9 @@ export function downloadThermalReceipt(order, profile) {
 
   // Calculate exact height using a dummy doc to prevent bottom paper waste
   const dummyDoc = new jsPDF({ orientation: "portrait", unit: "mm", format: [58, 1000] });
+  dummyDoc.addFileToVFS('Roboto-Regular.ttf', robotoBase64);
+  dummyDoc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+  
   autoTable(dummyDoc, {
     startY: 15,
     margin: { left: 2, right: 2, bottom: 2 },
@@ -27,7 +32,7 @@ export function downloadThermalReceipt(order, profile) {
     ]],
     body: tableData,
     theme: 'plain',
-    styles: { fontSize: 11, cellPadding: { top: 0.2, bottom: 0.2, left: 1, right: 1 }, font: "helvetica" },
+    styles: { fontSize: 11, cellPadding: { top: 0.2, bottom: 0.2, left: 1, right: 1 }, font: "Roboto" },
     columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 8, halign: 'right' }, 2: { cellWidth: 14, halign: 'right' } }
   });
   
@@ -42,6 +47,9 @@ export function downloadThermalReceipt(order, profile) {
     unit: "mm",
     format: [58, exactHeight]
   });
+  
+  doc.addFileToVFS('Roboto-Regular.ttf', robotoBase64);
+  doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
 
   // Font setup
   doc.setFont("helvetica");
@@ -92,10 +100,11 @@ export function downloadThermalReceipt(order, profile) {
     styles: {
       fontSize: 11,
       cellPadding: { top: 0.2, bottom: 0.2, left: 1, right: 1 }, 
-      font: "helvetica",
+      font: "Roboto",
       textColor: 20
     },
     headStyles: {
+      font: "helvetica",
       fontStyle: 'bold',
       textColor: 0
     },
