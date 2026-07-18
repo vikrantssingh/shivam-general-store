@@ -42,14 +42,14 @@ export default function ForgotPasswordPage() {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-extrabold text-green-900 tracking-tight">Forgot Password</CardTitle>
           <CardDescription className="text-gray-500 font-medium">
-            Enter your email address to receive a password reset link.
+            Enter your email address and we&apos;ll send you a link to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isSuccess ? (
             <div className="text-center p-4 bg-green-50 text-green-800 rounded-md border border-green-200">
               <p className="font-medium">Check your email!</p>
-              <p className="text-sm mt-1">We've sent a password reset link to your email address.</p>
+              <p className="text-sm mt-1">We&apos;ve sent a password reset link to your email address.</p>
             </div>
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
