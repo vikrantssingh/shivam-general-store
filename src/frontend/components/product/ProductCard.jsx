@@ -1,12 +1,12 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Minus, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/frontend/context/CartContext";
 
 export default function ProductCard({ product }) {
-  const { addToCart, cart } = useCart();
+  const { addToCart, cart, updateQuantity } = useCart();
   
   const currentQty = cart?.find((item) => item.id === product.id)?.quantity || 0;
   const isMaxLimitReached = product.maxLimit > 0 && currentQty >= product.maxLimit;
@@ -39,14 +39,35 @@ export default function ProductCard({ product }) {
               <span className="text-[10px] text-gray-400 line-through">₹{product.mrp}</span>
             )}
           </div>
-          <Button 
-            size="sm" 
-            className="h-8 rounded-full bg-green-700 px-3 hover:bg-green-800 text-xs font-semibold"
-            onClick={() => addToCart(product)}
-            disabled={isMaxLimitReached}
-          >
-            {isMaxLimitReached ? "MAXED" : "ADD"}
-          </Button>
+          {currentQty > 0 ? (
+            <div className="flex h-8 items-center rounded-full border border-green-700 bg-white overflow-hidden shadow-sm">
+              <button
+                className="flex h-full w-8 items-center justify-center text-green-700 hover:bg-green-50 transition-colors"
+                onClick={() => updateQuantity(product.id, currentQty - 1)}
+              >
+                {currentQty === 1 ? <Trash2 size={14} /> : <Minus size={14} />}
+              </button>
+              <span className="flex h-full w-6 items-center justify-center text-xs font-bold text-green-700 bg-green-50/50">
+                {currentQty}
+              </span>
+              <button
+                className="flex h-full w-8 items-center justify-center text-green-700 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+                onClick={() => addToCart(product)}
+                disabled={isMaxLimitReached}
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          ) : (
+            <Button 
+              size="sm" 
+              className="h-8 rounded-full bg-green-700 px-4 hover:bg-green-800 text-xs font-semibold shadow-sm"
+              onClick={() => addToCart(product)}
+              disabled={isMaxLimitReached}
+            >
+              {isMaxLimitReached ? "MAXED" : "ADD"}
+            </Button>
+          )}
         </div>
         {isMaxLimitReached && (
           <p className="mt-2 text-[10px] font-semibold text-red-600 leading-tight">
