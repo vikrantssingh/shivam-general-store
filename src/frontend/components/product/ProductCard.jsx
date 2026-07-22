@@ -20,10 +20,10 @@ export default function ProductCard({ product }) {
             <span className="text-4xl">🛍️</span>
           </div>
         )}
-        {product.discount && (
-          <span className="absolute left-2 top-2 rounded bg-green-600 px-2 py-0.5 text-[10px] font-bold text-white">
+        {product.discount > 0 && (
+          <div className="absolute top-0 right-0 rounded-bl-xl rounded-tr-xl bg-orange-500 px-2 py-1 text-[10px] font-extrabold text-white shadow-sm z-10">
             {product.discount}% OFF
-          </span>
+          </div>
         )}
       </div>
       <CardContent className="p-3">

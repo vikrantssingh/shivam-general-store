@@ -107,25 +107,33 @@ export default function CheckoutPage() {
             <CardContent>
               <RadioGroup defaultValue={deliveryType} onValueChange={setDeliveryType} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <RadioGroupItem value="home_delivery" id="home" className="peer sr-only" />
+                  <RadioGroupItem value="home_delivery" id="home" className="sr-only" />
                   <Label
                     htmlFor="home"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-green-600 peer-data-[state=checked]:bg-green-50 [&:has([data-state=checked])]:border-green-600 cursor-pointer"
+                    className={`flex flex-col items-center justify-between rounded-xl border-2 p-4 transition-colors cursor-pointer ${
+                      deliveryType === "home_delivery"
+                        ? "border-green-600 bg-green-600 text-white shadow-md"
+                        : "border-gray-200 bg-white text-gray-900 hover:bg-gray-50"
+                    }`}
                   >
-                    <MapPin className="mb-3 h-6 w-6 text-gray-700 peer-data-[state=checked]:text-green-700" />
-                    <span className="font-bold text-gray-900">Home Delivery</span>
-                    <span className="text-xs text-gray-500 mt-1">Delivered to your door</span>
+                    <MapPin className={`mb-3 h-8 w-8 ${deliveryType === "home_delivery" ? "text-white" : "text-gray-500"}`} />
+                    <span className="font-bold">Home Delivery</span>
+                    <span className={`text-xs mt-1 ${deliveryType === "home_delivery" ? "text-green-100" : "text-gray-500"}`}>Delivered to your door</span>
                   </Label>
                 </div>
                 <div>
-                  <RadioGroupItem value="store_pickup" id="pickup" className="peer sr-only" />
+                  <RadioGroupItem value="store_pickup" id="pickup" className="sr-only" />
                   <Label
                     htmlFor="pickup"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-green-600 peer-data-[state=checked]:bg-green-50 [&:has([data-state=checked])]:border-green-600 cursor-pointer"
+                    className={`flex flex-col items-center justify-between rounded-xl border-2 p-4 transition-colors cursor-pointer ${
+                      deliveryType === "store_pickup"
+                        ? "border-green-600 bg-green-600 text-white shadow-md"
+                        : "border-gray-200 bg-white text-gray-900 hover:bg-gray-50"
+                    }`}
                   >
-                    <Store className="mb-3 h-6 w-6 text-gray-700" />
-                    <span className="font-bold text-gray-900">Store Pickup</span>
-                    <span className="text-xs text-gray-500 mt-1">Pick up yourself (Free)</span>
+                    <Store className={`mb-3 h-8 w-8 ${deliveryType === "store_pickup" ? "text-white" : "text-gray-500"}`} />
+                    <span className="font-bold">Store Pickup</span>
+                    <span className={`text-xs mt-1 ${deliveryType === "store_pickup" ? "text-green-100" : "text-gray-500"}`}>Pick up yourself (Free)</span>
                   </Label>
                 </div>
               </RadioGroup>

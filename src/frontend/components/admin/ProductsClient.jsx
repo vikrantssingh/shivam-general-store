@@ -24,7 +24,8 @@ export default function ProductsClient({ initialProducts, categories }) {
   const [isLoading, setIsLoading] = useState(false);
   
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("true");
+  const [selectedRetailStatus, setSelectedRetailStatus] = useState("true");
+  const [selectedWholesaleStatus, setSelectedWholesaleStatus] = useState("true");
 
   const filteredProducts = initialProducts.filter(p => 
     (p.name || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -33,14 +34,16 @@ export default function ProductsClient({ initialProducts, categories }) {
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setSelectedCategoryId("");
-    setSelectedStatus("true");
+    setSelectedRetailStatus("true");
+    setSelectedWholesaleStatus("true");
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (product) => {
     setEditingProduct(product);
     setSelectedCategoryId(product.category_id || "");
-    setSelectedStatus(product.status !== false ? "true" : "false");
+    setSelectedRetailStatus(product.retail_status !== false ? "true" : "false");
+    setSelectedWholesaleStatus(product.wholesale_status !== false ? "true" : "false");
     
     setIsFormOpen(true);
   };
@@ -163,10 +166,23 @@ export default function ProductsClient({ initialProducts, categories }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Status</label>
-              <Select name="status" value={selectedStatus} onValueChange={setSelectedStatus}>
+              <label className="text-sm font-semibold text-gray-700">Retail Status</label>
+              <Select name="retail_status" value={selectedRetailStatus} onValueChange={setSelectedRetailStatus}>
                 <SelectTrigger>
-                  {selectedStatus === "true" ? "Active (Visible)" : "Inactive (Hidden)"}
+                  {selectedRetailStatus === "true" ? "Active (Visible)" : "Inactive (Hidden)"}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Active (Visible)</SelectItem>
+                  <SelectItem value="false">Inactive (Hidden)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Wholesale Status</label>
+              <Select name="wholesale_status" value={selectedWholesaleStatus} onValueChange={setSelectedWholesaleStatus}>
+                <SelectTrigger>
+                  {selectedWholesaleStatus === "true" ? "Active (Visible)" : "Inactive (Hidden)"}
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="true">Active (Visible)</SelectItem>
@@ -262,11 +278,18 @@ export default function ProductsClient({ initialProducts, categories }) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={
-                    product.status ? "border-green-200 bg-green-50 text-green-700 font-semibold" : "border-red-200 bg-red-50 text-red-700 font-semibold"
-                  }>
-                    {product.status ? "Active" : "Inactive"}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant="outline" className={
+                      product.retail_status !== false ? "border-green-200 bg-green-50 text-green-700 font-semibold text-[10px]" : "border-red-200 bg-red-50 text-red-700 font-semibold text-[10px]"
+                    }>
+                      R: {product.retail_status !== false ? "Active" : "Hidden"}
+                    </Badge>
+                    <Badge variant="outline" className={
+                      product.wholesale_status !== false ? "border-blue-200 bg-blue-50 text-blue-700 font-semibold text-[10px]" : "border-red-200 bg-red-50 text-red-700 font-semibold text-[10px]"
+                    }>
+                      W: {product.wholesale_status !== false ? "Active" : "Hidden"}
+                    </Badge>
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">

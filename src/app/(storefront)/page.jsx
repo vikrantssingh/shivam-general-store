@@ -29,7 +29,7 @@ export default async function StorefrontHome({ searchParams }) {
   let productsQuery = supabase
     .from("products")
     .select("*")
-    .eq("status", true)
+    .eq(isShopkeeper ? "wholesale_status" : "retail_status", true)
     .order("created_at", { ascending: false });
 
   if (categoryId && categoryId !== "all") {

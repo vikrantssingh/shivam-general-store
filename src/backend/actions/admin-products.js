@@ -22,7 +22,8 @@ export async function addProductAction(formData) {
   const stock = parseInt(formData.get("stock"));
   const retail_limit = parseInt(formData.get("retail_limit") || "0");
   const shopkeeper_limit = parseInt(formData.get("shopkeeper_limit") || "0");
-  const status = formData.get("status") === "true";
+  const retail_status = formData.get("retail_status") === "true";
+  const wholesale_status = formData.get("wholesale_status") === "true";
   const imageFile = formData.get("image");
 
   if (!name || !unit || isNaN(retail_price) || isNaN(stock)) {
@@ -58,7 +59,8 @@ export async function addProductAction(formData) {
     stock,
     retail_limit,
     shopkeeper_limit,
-    status,
+    retail_status,
+    wholesale_status,
     image_url
   });
 
@@ -89,7 +91,8 @@ export async function updateProductAction(formData) {
   const stock = parseInt(formData.get("stock"));
   const retail_limit = parseInt(formData.get("retail_limit") || "0");
   const shopkeeper_limit = parseInt(formData.get("shopkeeper_limit") || "0");
-  const status = formData.get("status") === "true";
+  const retail_status = formData.get("retail_status") === "true";
+  const wholesale_status = formData.get("wholesale_status") === "true";
   const imageFile = formData.get("image");
 
   if (!id || !name || !unit || isNaN(retail_price) || isNaN(stock)) {
@@ -126,7 +129,8 @@ export async function updateProductAction(formData) {
     stock,
     retail_limit,
     shopkeeper_limit,
-    status,
+    retail_status,
+    wholesale_status,
     image_url,
     updated_at: new Date().toISOString()
   }).eq("id", id);
