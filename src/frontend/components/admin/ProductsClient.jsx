@@ -17,8 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { addProductAction, updateProductAction, deleteProductAction } from "@/backend/actions/admin-products";
 import { toast } from "sonner";
 
-export default function ProductsClient({ initialProducts, categories }) {
+export default function ProductsClient({ initialProducts, categories, filterLowStock = false }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showLowStockOnly, setShowLowStockOnly] = useState(filterLowStock);
+  const [lowStockThreshold, setLowStockThreshold] = useState(10);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,9 +29,15 @@ export default function ProductsClient({ initialProducts, categories }) {
   const [selectedRetailStatus, setSelectedRetailStatus] = useState("true");
   const [selectedWholesaleStatus, setSelectedWholesaleStatus] = useState("true");
 
-  const filteredProducts = initialProducts.filter(p => 
-    (p.name || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = initialProducts.filter(p => {
+    const matchesSearch = (p.name || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLowStock = showLowStockOnly ? (p.stock <= lowStockThreshold) : true;
+    return matchesSearch && matchesLowStock;
+  });
+
+  if (showLowStockOnly) {
+    filteredProducts.sort((a, b) => (a.stock || 0) - (b.stock || 0));
+  }
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
@@ -210,9 +218,42 @@ export default function ProductsClient({ initialProducts, categories }) {
           <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your store&apos;s inventory, pricing, and limits.</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 font-semibold shadow-sm" onClick={handleOpenAdd}>
-          <Plus className="mr-2 h-4 w-4" /> Add New Product
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            variant={showLowStockOnly ? "destructive" : "outline"} 
+            className={showLowStockOnly ? "" : "bg-white"}
+            onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+          >
+            {showLowStockOnly ? (
+              <div className="flex items-center">
+                Clear Filter (≤
+                <input
+                  type="number"
+                  className="w-10 bg-transparent border-b border-white outline-none text-center mx-0.5 appearance-none"
+                  value={lowStockThreshold}
+                  onChange={(e) => setLowStockThreshold(Number(e.target.value))}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                )
+              </div>
+            ) : (
+              <div className="flex items-center">
+                Low Stock Alert (≤
+                <input
+                  type="number"
+                  className="w-10 bg-transparent border-b border-gray-400 outline-none text-center mx-0.5 appearance-none"
+                  value={lowStockThreshold}
+                  onChange={(e) => setLowStockThreshold(Number(e.target.value))}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                )
+              </div>
+            )}
+          </Button>
+          <Button onClick={handleOpenAdd} className="bg-green-700 hover:bg-green-800 text-white w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" /> Add Product
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center w-full max-w-sm space-x-2">

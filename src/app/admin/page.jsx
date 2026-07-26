@@ -3,6 +3,7 @@ import { Package, ShoppingCart, IndianRupee, Users } from "lucide-react";
 import DashboardCharts from "./_components/DashboardCharts";
 import RevenueHistorySection from "./_components/RevenueHistorySection";
 import { getDashboardStats, getDashboardCharts } from "@/backend/actions/admin-dashboard";
+import Link from "next/link";
 
 export default async function AdminDashboard() {
   const statsResult = await getDashboardStats();
@@ -60,16 +61,18 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-orange-500 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Low Stock Alerts</CardTitle>
-            <Package className="h-8 w-8 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{stats.stock.low}</div>
-            <p className="text-xs text-red-500 font-medium mt-1">{stats.stock.out} items out of stock</p>
-          </CardContent>
-        </Card>
+        <Link href="/admin/products?lowStock=true">
+          <Card className="border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">Low Stock Alerts</CardTitle>
+              <Package className="h-8 w-8 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{stats.stock.low}</div>
+              <p className="text-xs text-red-500 font-medium mt-1">{stats.stock.out} items out of stock</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Charts Area */}

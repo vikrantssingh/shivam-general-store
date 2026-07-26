@@ -1,8 +1,9 @@
 import { createClient } from "@/backend/supabase/server";
 import ProductsClient from "@/frontend/components/admin/ProductsClient";
 
-export default async function AdminProductsPage() {
+export default async function AdminProductsPage({ searchParams }) {
   const supabase = createClient();
+  const isLowStockView = searchParams?.lowStock === 'true';
   
   // Fetch products with their categories
   const { data: products, error: productsError } = await supabase
@@ -30,6 +31,7 @@ export default async function AdminProductsPage() {
     <ProductsClient 
       initialProducts={products || []} 
       categories={categories || []} 
+      filterLowStock={isLowStockView}
     />
   );
 }

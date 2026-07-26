@@ -85,7 +85,7 @@ export async function getDashboardStats() {
     const { count: outOfStockCount } = await supabase
       .from("products")
       .select("*", { count: 'exact', head: true })
-      .eq("stock", 0);
+      .lte("stock", 4);
 
     return {
       revenue: {
