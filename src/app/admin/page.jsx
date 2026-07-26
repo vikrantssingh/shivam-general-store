@@ -12,7 +12,7 @@ export default async function AdminDashboard() {
   // Default fallback values if error
   const stats = statsResult.error ? {
     revenue: { today: 45231.89, growth: 20.1 },
-    orders: { today: 142, growth: 12.5 },
+    orders: { today: 142, growth: 12.5, pending: 15 },
     customers: { total: 12234, pending: 45 },
     stock: { low: 18, out: 3 }
   } : statsResult;
@@ -23,7 +23,7 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Metrics Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card className="border-l-4 border-l-blue-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">Today&apos;s Revenue</CardTitle>
@@ -49,6 +49,19 @@ export default async function AdminDashboard() {
             </p>
           </CardContent>
         </Card>
+
+        <Link href="/admin/orders">
+          <Card className="border-l-4 border-l-yellow-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">Pending Orders</CardTitle>
+              <ShoppingCart className="h-8 w-8 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{stats.orders.pending}</div>
+              <p className="text-xs text-yellow-600 font-medium mt-1">Requires action</p>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card className="border-l-4 border-l-purple-500 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">

@@ -30,11 +30,63 @@ const statusStyles = {
 export default function OrdersClient({ initialOrders }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingId, setLoadingId] = useState(null);
+  
+  // Filter States
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("pending");
+  const [deliveryFilter, setDeliveryFilter] = useState("all");
+  const [customerFilter, setCustomerFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
 
-  const filteredOrders = initialOrders.filter(o => 
-    (o.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (o.users?.full_name || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = initialOrders.filter(o => {
+    // 1. Search Match
+    const matchesSearch = (o.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (o.users?.full_name || "").toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // 2. Status Match
+    let matchesStatus = true;
+    if (statusFilter === "pending") {
+      matchesStatus = !["delivered", "cancelled"].includes(o.status);
+    } else if (statusFilter !== "all") {
+      matchesStatus = o.status === statusFilter;
+    }
+
+    // 3. Delivery Type Match
+    let matchesDelivery = true;
+    if (deliveryFilter !== "all") {
+      matchesDelivery = o.delivery_type === deliveryFilter;
+    }
+
+    // 4. Customer Match
+    let matchesCustomer = true;
+    if (customerFilter !== "all") {
+      matchesCustomer = o.users?.role === customerFilter;
+    }
+
+    // 5. Date Match
+    let matchesDate = true;
+    if (dateFilter !== "all") {
+      const orderDate = new Date(o.created_at);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      const last7Days = new Date(today);
+      last7Days.setDate(last7Days.getDate() - 7);
+
+      if (dateFilter === "today") {
+        matchesDate = orderDate >= today;
+      } else if (dateFilter === "yesterday") {
+        matchesDate = orderDate >= yesterday && orderDate < today;
+      } else if (dateFilter === "last_7_days") {
+        matchesDate = orderDate >= last7Days;
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesDelivery && matchesCustomer && matchesDate;
+  });
 
   const handleStatusChange = async (orderId, currentStatus, newStatus) => {
     if (currentStatus === newStatus) return;
@@ -71,19 +123,103 @@ export default function OrdersClient({ initialOrders }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 w-full">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input 
-            placeholder="Search by Order ID or Customer..." 
-            className="pl-9 bg-white" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex items-center gap-4 w-full">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input 
+              placeholder="Search by Order ID or Customer..." 
+              className="pl-9 bg-white" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button 
+            variant={showFilters ? "secondary" : "outline"} 
+            className={showFilters ? "bg-gray-200" : "bg-white"}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="mr-2 h-4 w-4" /> {showFilters ? "Hide Filters" : "Filters"}
+          </Button>
         </div>
-        <Button variant="outline" className="bg-white">
-          <Filter className="mr-2 h-4 w-4" /> Filter
-        </Button>
+
+        {showFilters && (
+          <div className="flex flex-wrap gap-4 p-4 bg-white border border-gray-200 rounded-md shadow-sm">
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Order Status</label>
+              <select 
+                className="text-sm border rounded-md p-2 bg-gray-50 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+              >
+                <option value="pending">Pending (Active)</option>
+                <option value="all">All Orders</option>
+                <option value="placed">Placed</option>
+                <option value="preparing">Preparing</option>
+                <option value="ready_for_pickup">Ready for Pickup</option>
+                <option value="out_for_delivery">Out for Delivery</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Delivery Type</label>
+              <select 
+                className="text-sm border rounded-md p-2 bg-gray-50 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                value={deliveryFilter}
+                onChange={e => setDeliveryFilter(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="home_delivery">Home Delivery</option>
+                <option value="store_pickup">Store Pickup</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer Type</label>
+              <select 
+                className="text-sm border rounded-md p-2 bg-gray-50 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                value={customerFilter}
+                onChange={e => setCustomerFilter(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="retail">Retail</option>
+                <option value="wholesale">Wholesale</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</label>
+              <select 
+                className="text-sm border rounded-md p-2 bg-gray-50 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                value={dateFilter}
+                onChange={e => setDateFilter(e.target.value)}
+              >
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="last_7_days">Last 7 Days</option>
+              </select>
+            </div>
+            
+            <div className="flex items-end ml-auto w-full sm:w-auto">
+              <Button 
+                variant="ghost" 
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 text-sm h-[38px] w-full sm:w-auto"
+                onClick={() => {
+                  setStatusFilter("pending");
+                  setDeliveryFilter("all");
+                  setCustomerFilter("all");
+                  setDateFilter("all");
+                  setSearchTerm("");
+                }}
+              >
+                Reset Filters
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="rounded-md border bg-white shadow-sm overflow-hidden">

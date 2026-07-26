@@ -76,6 +76,13 @@ export async function getDashboardStats() {
       .select("*", { count: 'exact', head: true })
       .eq("role", "shopkeeper_pending");
 
+    // Pending Orders
+    const { count: pendingOrdersCount } = await supabase
+      .from("orders")
+      .select("*", { count: 'exact', head: true })
+      .not("status", "eq", "delivered")
+      .not("status", "eq", "cancelled");
+
     // 4. Low Stock
     const { count: lowStockCount } = await supabase
       .from("products")
@@ -94,7 +101,8 @@ export async function getDashboardStats() {
       },
       orders: {
         today: todayOrdersCount,
-        growth: ordersGrowth
+        growth: ordersGrowth,
+        pending: pendingOrdersCount || 0
       },
       customers: {
         total: totalCustomers || 0,
