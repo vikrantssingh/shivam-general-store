@@ -14,9 +14,13 @@ export default async function StorefrontLayout({ children }) {
     }
   }
 
+  // Fetch basic data for instant search suggestions
+  const { data: categories } = await supabase.from('categories').select('id, name');
+  const { data: products } = await supabase.from('products').select('id, name, image_url, category_id');
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 pb-16 md:pb-0">
-      <Header user={user} isAdmin={isAdmin} />
+      <Header user={user} isAdmin={isAdmin} searchData={{ categories: categories || [], products: products || [] }} />
       <main className="flex-1">{children}</main>
       <BottomNav user={user} />
     </div>

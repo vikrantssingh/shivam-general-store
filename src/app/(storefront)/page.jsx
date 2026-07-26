@@ -3,6 +3,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/backend/supabase/server";
 import Link from "next/link";
+import CategoryList from "@/frontend/components/storefront/CategoryList";
 
 export default async function StorefrontHome({ searchParams }) {
   const supabase = createClient();
@@ -35,9 +36,17 @@ export default async function StorefrontHome({ searchParams }) {
   if (categoryId && categoryId !== "all") {
     productsQuery = productsQuery.eq("category_id", categoryId);
   }
-  
   if (q) {
-    productsQuery = productsQuery.ilike("name", `%${q}%`);
+    const matchingCategories = (categories || []).filter(c => 
+      c.name.toLowerCase().includes(q.toLowerCase())
+    );
+    
+    if (matchingCategories.length > 0) {
+      const categoryIds = matchingCategories.map(c => c.id).join(',');
+      productsQuery = productsQuery.or(`name.ilike.%${q}%,category_id.in.(${categoryIds})`);
+    } else {
+      productsQuery = productsQuery.ilike("name", `%${q}%`);
+    }
   }
 
   const { data: products } = await productsQuery;
@@ -65,29 +74,12 @@ export default async function StorefrontHome({ searchParams }) {
         <div className="absolute right-20 -top-10 h-32 w-32 rounded-full bg-yellow-200/40 blur-2xl" />
       </div>
 
-      {/* Categories Horizontal Scroll */}
-      <div className="mt-8 mb-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Shop by Category</h2>
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex w-max space-x-4 pb-4">
-            {displayCategories.map((category) => {
-              const isActive = categoryId === category.id;
-              return (
-                <Link 
-                  href={`/?category=${category.id}${q ? `&q=${q}` : ''}`}
-                  key={category.id || category.name} 
-                  className={`flex flex-col items-center justify-center rounded-xl p-3 px-5 transition-colors ${
-                    isActive ? "bg-green-700 text-white shadow-md" : "bg-white border border-gray-100 hover:bg-green-50 text-gray-600 shadow-sm"
-                  }`}
-                >
-                  <span className="text-sm font-semibold">{category.name}</span>
-                </Link>
-              );
-            })}
-          </div>
-          <ScrollBar orientation="horizontal" className="hidden" />
-        </ScrollArea>
-      </div>
+      {/* Categories */}
+      <CategoryList 
+        categories={displayCategories} 
+        currentCategoryId={categoryId} 
+        q={q} 
+      />
 
       {/* Product Grid */}
       <div>

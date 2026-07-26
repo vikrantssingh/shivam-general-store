@@ -6,13 +6,33 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/frontend/context/CartContext";
 import { logoutAction } from "@/backend/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-export default function Header({ user, isAdmin }) {
+export default function Header({ user, isAdmin, searchData = { categories: [], products: [] } }) {
   const { totalItems } = useCart();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || "");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const headerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (headerRef.current && !headerRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredCategories = searchQuery.trim() 
+    ? searchData.categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3) 
+    : [];
+    
+  const filteredProducts = searchQuery.trim() 
+    ? searchData.products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5) 
+    : [];
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -29,9 +49,10 @@ export default function Header({ user, isAdmin }) {
     if (url === '') url = '/';
 
     router.push(url);
+    setShowSuggestions(false);
   };
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+    <header ref={headerRef} className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Mobile Menu & Logo */}
         <div className="flex items-center gap-3">
@@ -66,16 +87,55 @@ export default function Header({ user, isAdmin }) {
             </Link>
           )}
 
-          <form onSubmit={handleSearch} className="hidden sm:flex relative">
-            <input 
-              type="search" 
-              placeholder="Search products..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-48 lg:w-64 rounded-full border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
-            />
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          </form>
+          <div className="hidden sm:block relative">
+            <form onSubmit={handleSearch} className="flex relative">
+              <input 
+                type="search" 
+                placeholder="Search products/categories..." 
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(e.target.value.trim().length > 0);
+                }}
+                onFocus={() => setShowSuggestions(searchQuery.trim().length > 0)}
+                className="w-48 lg:w-64 rounded-full border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
+              />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            </form>
+            
+            {showSuggestions && (filteredCategories.length > 0 || filteredProducts.length > 0) && (
+              <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                {filteredCategories.length > 0 && (
+                  <div className="p-2 border-b border-gray-50">
+                    <div className="text-xs font-bold text-gray-400 uppercase px-2 mb-1">Categories</div>
+                    {filteredCategories.map(c => (
+                      <div 
+                        key={c.id} 
+                        onClick={() => { setShowSuggestions(false); router.push(`/?category=${c.id}`); }}
+                        className="cursor-pointer px-2 py-1.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md"
+                      >
+                        {c.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {filteredProducts.length > 0 && (
+                  <div className="p-2">
+                    <div className="text-xs font-bold text-gray-400 uppercase px-2 mb-1">Products</div>
+                    {filteredProducts.map(p => (
+                      <div 
+                        key={p.id} 
+                        onClick={() => { setShowSuggestions(false); router.push(`/?q=${encodeURIComponent(p.name)}`); }}
+                        className="cursor-pointer px-2 py-1.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md flex items-center gap-2"
+                      >
+                        <span className="truncate">{p.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           
           <Link href="/cart" className="relative hidden md:flex">
             <Button variant="ghost" size="icon" title="Cart">
@@ -116,17 +176,53 @@ export default function Header({ user, isAdmin }) {
         </div>
       </div>
       
-      <div className="container mx-auto p-3 sm:hidden">
+      <div className="container mx-auto p-3 sm:hidden relative">
         <form onSubmit={handleSearch} className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input 
             type="search" 
-            placeholder="Search for products..." 
+            placeholder="Search products/categories..." 
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSuggestions(e.target.value.trim().length > 0);
+            }}
+            onFocus={() => setShowSuggestions(searchQuery.trim().length > 0)}
             className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
           />
         </form>
+        {showSuggestions && (filteredCategories.length > 0 || filteredProducts.length > 0) && (
+          <div className="absolute left-3 right-3 top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+            {filteredCategories.length > 0 && (
+              <div className="p-2 border-b border-gray-50">
+                <div className="text-xs font-bold text-gray-400 uppercase px-2 mb-1">Categories</div>
+                {filteredCategories.map(c => (
+                  <div 
+                    key={c.id} 
+                    onClick={() => { setShowSuggestions(false); router.push(`/?category=${c.id}`); }}
+                    className="cursor-pointer px-2 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md"
+                  >
+                    {c.name}
+                  </div>
+                ))}
+              </div>
+            )}
+            {filteredProducts.length > 0 && (
+              <div className="p-2">
+                <div className="text-xs font-bold text-gray-400 uppercase px-2 mb-1">Products</div>
+                {filteredProducts.map(p => (
+                  <div 
+                    key={p.id} 
+                    onClick={() => { setShowSuggestions(false); router.push(`/?q=${encodeURIComponent(p.name)}`); }}
+                    className="cursor-pointer px-2 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md flex items-center gap-2"
+                  >
+                    <span className="truncate">{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );
