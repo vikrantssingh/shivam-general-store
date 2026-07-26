@@ -218,18 +218,18 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
           <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your store&apos;s inventory, pricing, and limits.</p>
         </div>
-        <div className="flex justify-end gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap justify-end gap-2 w-full sm:w-auto">
           <Button 
             variant={showLowStockOnly ? "destructive" : "outline"} 
-            className={showLowStockOnly ? "w-auto" : "bg-white w-auto"}
+            className={showLowStockOnly ? "w-auto text-xs sm:text-sm px-2 sm:px-4" : "bg-white w-auto text-xs sm:text-sm px-2 sm:px-4"}
             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
           >
             {showLowStockOnly ? (
               <div className="flex items-center">
-                Clear Filter (≤
+                Clear (≤
                 <input
                   type="number"
-                  className="w-10 bg-transparent border-b border-white outline-none text-center mx-0.5 appearance-none"
+                  className="w-8 bg-transparent border-b border-white outline-none text-center mx-0.5 appearance-none"
                   value={lowStockThreshold}
                   onChange={(e) => setLowStockThreshold(Number(e.target.value))}
                   onClick={(e) => e.stopPropagation()}
@@ -238,10 +238,10 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
               </div>
             ) : (
               <div className="flex items-center">
-                Low Stock Alert (≤
+                Low Stock (≤
                 <input
                   type="number"
-                  className="w-10 bg-transparent border-b border-gray-400 outline-none text-center mx-0.5 appearance-none"
+                  className="w-8 bg-transparent border-b border-gray-400 outline-none text-center mx-0.5 appearance-none"
                   value={lowStockThreshold}
                   onChange={(e) => setLowStockThreshold(Number(e.target.value))}
                   onClick={(e) => e.stopPropagation()}
@@ -250,8 +250,8 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
               </div>
             )}
           </Button>
-          <Button onClick={handleOpenAdd} className="bg-green-700 hover:bg-green-800 text-white w-[70%] sm:w-auto shrink-0">
-            <Plus className="mr-2 h-4 w-4" /> Add Product
+          <Button onClick={handleOpenAdd} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm w-auto text-xs sm:text-sm px-3 sm:px-4">
+            <Plus className="mr-1 h-3 w-3 sm:h-4 sm:w-4" /> Add Product
           </Button>
         </div>
       </div>
