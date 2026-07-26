@@ -218,10 +218,10 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
           <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your store&apos;s inventory, pricing, and limits.</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex justify-between sm:justify-end gap-2 w-full sm:w-auto">
           <Button 
             variant={showLowStockOnly ? "destructive" : "outline"} 
-            className={showLowStockOnly ? "flex-1 sm:flex-none sm:w-auto text-sm" : "bg-white flex-1 sm:flex-none sm:w-auto text-sm"}
+            className={showLowStockOnly ? "w-[48%] sm:w-auto text-sm px-1 sm:px-4 shrink-0 overflow-hidden" : "bg-white w-[48%] sm:w-auto text-sm px-1 sm:px-4 shrink-0 overflow-hidden"}
             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
           >
             {showLowStockOnly ? (
@@ -250,8 +250,8 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
               </div>
             )}
           </Button>
-          <Button onClick={handleOpenAdd} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm flex-1 sm:flex-none sm:w-auto text-sm px-2 sm:px-4">
-            <Plus className="mr-1 h-4 w-4" /> Add Product
+          <Button onClick={handleOpenAdd} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm w-[48%] sm:w-auto text-sm px-2 sm:px-4 shrink-0 overflow-hidden">
+            <Plus className="mr-1 h-4 w-4 shrink-0" /> <span className="truncate">Add Product</span>
           </Button>
         </div>
       </div>
