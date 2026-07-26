@@ -38,6 +38,11 @@ export function CartProvider({ children }) {
         toast.error(`Cannot add more. Max limit reached.`);
         return prevCart;
       }
+      const purchasableStock = product.stock > 4 ? product.stock - 4 : 0;
+      if (product.stock !== undefined && currentQty + quantity > purchasableStock) {
+        toast.error(`Cannot add more. Only ${purchasableStock} units available in stock.`);
+        return prevCart;
+      }
 
       if (existingItem) {
         toast.success(`Updated ${product.name} quantity.`);
@@ -64,6 +69,11 @@ export function CartProvider({ children }) {
       const item = prevCart.find((i) => i.id === productId);
       if (item && item.maxLimit > 0 && newQuantity > item.maxLimit) {
         toast.error(`Cannot exceed max purchase limit.`);
+        return prevCart;
+      }
+      const purchasableStock = item.stock > 4 ? item.stock - 4 : 0;
+      if (item && item.stock !== undefined && newQuantity > purchasableStock) {
+        toast.error(`Cannot add more. Only ${purchasableStock} units available in stock.`);
         return prevCart;
       }
       return prevCart.map((item) =>

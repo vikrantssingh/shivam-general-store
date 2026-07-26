@@ -131,7 +131,8 @@ export default async function StorefrontHome({ searchParams }) {
                   mrp: displayMrp,
                   discount: discount,
                   image_url: product.image_url,
-                  maxLimit: maxLimit
+                  maxLimit: maxLimit,
+                  stock: product.stock
                 }} />
               );
             })}

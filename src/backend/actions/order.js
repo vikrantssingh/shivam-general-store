@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/backend/supabase/server";
+import { createAdminClient } from "@/backend/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -28,6 +29,14 @@ export async function placeOrderAction(orderData, cartItems) {
       return null;
     }
 
+    const currentStock = dbProduct.stock || 0;
+    const purchasableStock = currentStock > 4 ? currentStock - 4 : 0;
+    
+    if (purchasableStock <= 0 || purchasableStock < cartItem.quantity) {
+      cartUpdated = true;
+      // Item is out of stock (< 5) or insufficient stock
+    }
+
     const actualPrice = isShopkeeper && dbProduct.shopkeeper_price 
         ? dbProduct.shopkeeper_price 
         : dbProduct.retail_price;
@@ -40,6 +49,12 @@ export async function placeOrderAction(orderData, cartItems) {
     
     if (actualLimit > 0 && newQty > actualLimit) {
         newQty = actualLimit;
+        cartUpdated = true;
+    }
+
+    // Hard limit based on available stock
+    if (newQty > purchasableStock) {
+        newQty = purchasableStock;
         cartUpdated = true;
     }
 
@@ -62,17 +77,18 @@ export async function placeOrderAction(orderData, cartItems) {
         name: dbProduct.name,
         price: actualPrice,
         maxLimit: actualLimit,
+        stock: currentStock,
         quantity: newQty,
         unit: actualUnit,
         image_url: dbProduct.image_url
     };
   }).filter(Boolean);
 
-  if (cartUpdated || correctedCart.length !== cartItems.length) {
+  if (cartUpdated || correctedCart.length !== cartItems.length || correctedCart.some(item => item.quantity <= 0)) {
      return { 
          error: "CART_UPDATED", 
-         message: "Some items were updated due to recent price, limit, or availability changes by the admin. Please review your new bill and try again.", 
-         correctedCart 
+         message: "Some items were updated due to recent stock availability (< 5), price, or limit changes by the admin. Please review your new bill and try again.", 
+         correctedCart: correctedCart.filter(item => item.quantity > 0)
      };
   }
 
@@ -115,7 +131,31 @@ export async function placeOrderAction(orderData, cartItems) {
     return { error: "Failed to add items to order: " + itemsError.message };
   }
 
+  // Deduct stock securely for each item immediately using the Admin Client
+  const adminSupabase = createAdminClient();
+  for (const item of correctedCart) {
+    const dbProduct = dbProducts.find(p => p.id === item.id);
+    if (dbProduct) {
+      const newStock = Math.max(0, (dbProduct.stock || 0) - item.quantity);
+      const { data, error: stockError } = await adminSupabase
+        .from("products")
+        .update({ stock: newStock })
+        .eq("id", item.id)
+        .select();
+        
+      if (stockError) {
+        return { error: "Database error while updating stock: " + stockError.message };
+      }
+      
+      if (!data || data.length === 0) {
+        return { error: "SYSTEM ALERT: Stock update failed! Aapki .env.local mein SUPABASE_SERVICE_ROLE_KEY missing hai ya galat hai. Pura order cancel kar diya gaya hai." };
+      }
+    }
+  }
+
   revalidatePath("/dashboard/orders");
+  revalidatePath("/admin/products"); // revalidate products so frontend and admin see updated stock
+  revalidatePath("/");
   return { success: true, orderId: order.id };
 }
 
@@ -135,20 +175,20 @@ export async function updateOrderStatusAction(formData) {
   
   if (!id || !status) return { error: "Missing required fields" };
 
-  // If there's an ETA message, we need to fetch the existing delivery_address to update it
+  // Fetch existing order to check status
+  const { data: order } = await supabase.from("orders").select("status, delivery_address").eq("id", id).single();
+  if (!order) return { error: "Order not found" };
+
   let updateData = {
     status,
     updated_at: new Date().toISOString()
   };
 
   if (etaMessage !== null && etaMessage !== undefined) {
-    const { data: order } = await supabase.from("orders").select("delivery_address").eq("id", id).single();
-    if (order) {
-      updateData.delivery_address = {
-        ...(order.delivery_address || {}),
-        eta_message: etaMessage
-      };
-    }
+    updateData.delivery_address = {
+      ...(order.delivery_address || {}),
+      eta_message: etaMessage
+    };
   }
 
   const { error } = await supabase
