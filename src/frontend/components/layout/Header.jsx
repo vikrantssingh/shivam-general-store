@@ -7,6 +7,7 @@ import { useCart } from "@/frontend/context/CartContext";
 import { logoutAction } from "@/backend/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import AdminRoleSwitcher from "./AdminRoleSwitcher";
 
 export default function Header({ user, isAdmin, searchData = { categories: [], products: [] } }) {
   const { totalItems } = useCart();
@@ -80,11 +81,7 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
         {/* Actions (Search, Cart, Profile) */}
         <div className="flex items-center gap-2 md:gap-4">
           {isAdmin && (
-            <Link href="/admin">
-              <Button variant="outline" size="sm" className="flex text-xs sm:text-sm text-green-700 border-green-200 bg-green-50 hover:bg-green-100 font-bold px-2 sm:px-3">
-                Admin Panel
-              </Button>
-            </Link>
+            <AdminRoleSwitcher />
           )}
 
           <div className="hidden sm:block relative">

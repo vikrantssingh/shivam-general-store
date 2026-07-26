@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, Grid, ShoppingCart, Users, Settings, LogOut, Truck, Menu } from "lucide-react";
 import { logoutAction } from "@/backend/actions/auth";
 import NotificationBell from "@/components/admin/NotificationBell";
+import AdminRoleSwitcher from "@/frontend/components/layout/AdminRoleSwitcher";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
@@ -45,8 +46,9 @@ export default function AdminLayout({ children }) {
         
         {/* Top Right Header Content */}
         <div className="flex flex-1 items-center justify-between px-4 md:px-8">
-          <h1 className="text-xl font-bold text-gray-800">Admin Portal</h1>
+          <h1 className="text-xl font-bold text-gray-800 hidden sm:block">Admin Portal</h1>
           <div className="flex items-center gap-4 ml-auto">
+            <AdminRoleSwitcher />
             <NotificationBell />
             <div className="h-8 w-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-xs">
               AD

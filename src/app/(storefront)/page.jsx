@@ -2,6 +2,7 @@ import ProductCard from "@/frontend/components/product/ProductCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/backend/supabase/server";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import CategoryList from "@/frontend/components/storefront/CategoryList";
 
@@ -15,8 +16,20 @@ export default async function StorefrontHome({ searchParams }) {
   let isShopkeeper = false;
   if (user) {
     const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single();
+    
     if (profile && profile.role === 'shopkeeper_approved') {
       isShopkeeper = true;
+    }
+    
+    // Admin Override View
+    if (profile && profile.role === 'admin') {
+      const cookieStore = cookies();
+      const viewAs = cookieStore.get('admin_viewAs')?.value;
+      if (viewAs === 'shopkeeper') {
+        isShopkeeper = true;
+      } else if (viewAs === 'retail') {
+        isShopkeeper = false;
+      }
     }
   }
 
