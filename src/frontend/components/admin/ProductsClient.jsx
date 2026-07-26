@@ -218,10 +218,10 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
           <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your store&apos;s inventory, pricing, and limits.</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex justify-end gap-2 w-full sm:w-auto">
           <Button 
             variant={showLowStockOnly ? "destructive" : "outline"} 
-            className={showLowStockOnly ? "" : "bg-white"}
+            className={showLowStockOnly ? "w-auto" : "bg-white w-auto"}
             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
           >
             {showLowStockOnly ? (
@@ -250,7 +250,7 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
               </div>
             )}
           </Button>
-          <Button onClick={handleOpenAdd} className="bg-green-700 hover:bg-green-800 text-white w-full sm:w-auto">
+          <Button onClick={handleOpenAdd} className="bg-green-700 hover:bg-green-800 text-white w-[70%] sm:w-auto shrink-0">
             <Plus className="mr-2 h-4 w-4" /> Add Product
           </Button>
         </div>

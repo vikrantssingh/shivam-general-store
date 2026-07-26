@@ -27,30 +27,30 @@ export default function AdminLayout({ children }) {
       {/* Top Fixed Header */}
       <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center bg-white shadow-sm border-b">
         {/* Logo and Menu Button */}
-        <div className="flex h-16 w-64 items-center px-4 border-r border-gray-200 shrink-0">
+        <div className="flex h-16 w-auto md:w-64 items-center px-2 sm:px-4 md:border-r border-gray-200 shrink-0">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 mr-3 text-gray-500 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-200 shrink-0"
+            className="p-1 sm:p-2 mr-2 sm:mr-3 text-gray-500 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-200 shrink-0"
           >
             <Menu className="h-6 w-6" />
           </button>
           <Link href="/admin" className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-gray-900 leading-none">
+            <span className="text-lg sm:text-xl font-extrabold tracking-tight text-gray-900 leading-none">
               ADMIN
             </span>
-            <span className="text-[10px] font-bold text-gray-400 tracking-widest leading-none mt-1">
+            <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 tracking-widest leading-none mt-1">
               SHIVAM STORE
             </span>
           </Link>
         </div>
         
         {/* Top Right Header Content */}
-        <div className="flex flex-1 items-center justify-between px-4 md:px-8">
+        <div className="flex flex-1 items-center justify-end sm:justify-between px-2 sm:px-4 md:px-8">
           <h1 className="text-xl font-bold text-gray-800 hidden sm:block">Admin Portal</h1>
-          <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
             <AdminRoleSwitcher />
             <NotificationBell />
-            <div className="h-8 w-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-xs">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-[10px] sm:text-xs">
               AD
             </div>
           </div>
