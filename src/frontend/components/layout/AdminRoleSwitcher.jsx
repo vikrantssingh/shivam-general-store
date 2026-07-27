@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 
 export default function AdminRoleSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
+  const [viewAs, setViewAs] = useState("");
   const dropdownRef = useRef(null);
   const pathname = usePathname();
 
@@ -20,13 +21,32 @@ export default function AdminRoleSwitcher() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const match = document.cookie.match(new RegExp('(^| )admin_viewAs=([^;]+)'));
+    if (match) {
+      setViewAs(match[2]);
+    } else {
+      setViewAs("retail");
+    }
+  }, []);
+
   const isAdminPortal = pathname?.startsWith('/admin');
 
   const setViewMode = (mode) => {
     // Set a cookie so the view mode persists across navigations for the admin
     document.cookie = `admin_viewAs=${mode}; path=/; max-age=86400`;
+    setViewAs(mode);
     setIsOpen(false);
   };
+
+  let buttonLabel = "Admin Portal";
+  if (!isAdminPortal) {
+    if (viewAs === "shopkeeper") {
+      buttonLabel = "Shopkeeper Panel";
+    } else {
+      buttonLabel = "Retail Panel";
+    }
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -34,7 +54,7 @@ export default function AdminRoleSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 text-xs sm:text-sm text-green-800 border border-green-200 bg-green-50 hover:bg-green-100 font-bold px-2 sm:px-3 py-1.5 rounded-md transition-colors"
       >
-        {isAdminPortal ? "Admin Panel" : "Admin Panel"} <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {buttonLabel} <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
