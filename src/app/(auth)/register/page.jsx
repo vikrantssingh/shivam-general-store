@@ -75,11 +75,11 @@ export default function RegisterPage() {
           </Card>
 
           <Card 
-            className="cursor-pointer border-2 border-transparent hover:border-purple-600 hover:shadow-md transition-all"
+            className="cursor-pointer border-2 border-transparent hover:border-green-600 hover:shadow-md transition-all"
             onClick={() => setAccountType('shopkeeper')}
           >
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-700">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">
                 <Store className="h-6 w-6" />
               </div>
               <div className="flex-1">
@@ -101,7 +101,7 @@ export default function RegisterPage() {
   }
 
   const isRetail = accountType === 'retail';
-  const themeColor = isRetail ? "green" : "purple";
+  const themeColor = "green";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 py-10">
@@ -168,37 +168,37 @@ export default function RegisterPage() {
             <form onSubmit={shopkeeperForm.handleSubmit(onShopkeeperSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Shop / Business Name</label>
-                <Input {...shopkeeperForm.register("businessName")} placeholder="Enter shop name" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <Input {...shopkeeperForm.register("businessName")} placeholder="Enter shop name" className="bg-gray-50 focus-visible:ring-green-500" />
                 {shopkeeperForm.formState.errors.businessName && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.businessName.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Owner Name</label>
-                <Input {...shopkeeperForm.register("fullName")} placeholder="Enter owner name" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <Input {...shopkeeperForm.register("fullName")} placeholder="Enter owner name" className="bg-gray-50 focus-visible:ring-green-500" />
                 {shopkeeperForm.formState.errors.fullName && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.fullName.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Phone Number</label>
-                <Input {...shopkeeperForm.register("phone")} placeholder="Enter phone number" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <Input {...shopkeeperForm.register("phone")} placeholder="Enter phone number" className="bg-gray-50 focus-visible:ring-green-500" />
                 {shopkeeperForm.formState.errors.phone && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.phone.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Email Address</label>
-                <Input type="email" {...shopkeeperForm.register("email")} placeholder="Enter your email" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <Input type="email" {...shopkeeperForm.register("email")} placeholder="Enter your email" className="bg-gray-50 focus-visible:ring-green-500" />
                 {shopkeeperForm.formState.errors.email && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.email.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Complete Business Address</label>
-                <Input {...shopkeeperForm.register("businessAddress")} placeholder="Enter full address" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <Input {...shopkeeperForm.register("businessAddress")} placeholder="Enter full address" className="bg-gray-50 focus-visible:ring-green-500" />
                 {shopkeeperForm.formState.errors.businessAddress && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.businessAddress.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">GST Number (Optional)</label>
-                <Input {...shopkeeperForm.register("gstNumber")} placeholder="Enter GST number" className="bg-gray-50 focus-visible:ring-purple-500" />
+                <Input {...shopkeeperForm.register("gstNumber")} placeholder="Enter GST number" className="bg-gray-50 focus-visible:ring-green-500" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Password</label>
                 <div className="relative">
-                  <Input type={showPassword ? "text" : "password"} {...shopkeeperForm.register("password")} placeholder="Create a password" className="bg-gray-50 focus-visible:ring-purple-500 pr-10" />
+                  <Input type={showPassword ? "text" : "password"} {...shopkeeperForm.register("password")} placeholder="Create a password" className="bg-gray-50 focus-visible:ring-green-500 pr-10" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -208,14 +208,14 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Confirm Password</label>
                 <div className="relative">
-                  <Input type={showConfirmPassword ? "text" : "password"} {...shopkeeperForm.register("confirmPassword")} placeholder="Confirm your password" className="bg-gray-50 focus-visible:ring-purple-500 pr-10" />
+                  <Input type={showConfirmPassword ? "text" : "password"} {...shopkeeperForm.register("confirmPassword")} placeholder="Confirm your password" className="bg-gray-50 focus-visible:ring-green-500 pr-10" />
                   <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {shopkeeperForm.formState.errors.confirmPassword && <p className="text-xs text-red-500">{shopkeeperForm.formState.errors.confirmPassword.message}</p>}
               </div>
-              <Button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold h-11 mt-6" disabled={isPending}>
+              <Button type="submit" className="w-full bg-green-700 hover:bg-green-800 text-white font-bold h-11 mt-6" disabled={isPending}>
                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Request Wholesale Account"}
               </Button>
             </form>

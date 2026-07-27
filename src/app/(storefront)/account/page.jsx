@@ -1,6 +1,7 @@
 import { createClient } from "@/backend/supabase/server";
 import { redirect } from "next/navigation";
-import { User, CheckCircle, Clock, XCircle, Package } from "lucide-react";
+import Link from "next/link";
+import { User, CheckCircle, Clock, XCircle, Package, Info, Phone, ShieldCheck, FileText } from "lucide-react";
 import { logoutAction } from "@/backend/actions/auth";
 import { Button } from "@/components/ui/button";
 import { ProfileForm } from "./ProfileForm";
@@ -89,12 +90,37 @@ export default async function AccountPage() {
             </div>
           )}
 
+          <div className="pt-6 border-t mt-8">
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Help & Support</h2>
+            <div className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden divide-y divide-gray-100">
+              <Link href="/about" className="flex items-center p-4 hover:bg-gray-100 transition-colors group">
+                <Info className="h-5 w-5 text-gray-400 group-hover:text-green-600 mr-3" />
+                <span className="font-medium text-gray-700 group-hover:text-gray-900">About Us</span>
+              </Link>
+              <Link href="/contact" className="flex items-center p-4 hover:bg-gray-100 transition-colors group">
+                <Phone className="h-5 w-5 text-gray-400 group-hover:text-green-600 mr-3" />
+                <span className="font-medium text-gray-700 group-hover:text-gray-900">Contact Support</span>
+              </Link>
+              <Link href="/privacy" className="flex items-center p-4 hover:bg-gray-100 transition-colors group">
+                <ShieldCheck className="h-5 w-5 text-gray-400 group-hover:text-green-600 mr-3" />
+                <span className="font-medium text-gray-700 group-hover:text-gray-900">Privacy Policy</span>
+              </Link>
+              <Link href="/terms" className="flex items-center p-4 hover:bg-gray-100 transition-colors group">
+                <FileText className="h-5 w-5 text-gray-400 group-hover:text-green-600 mr-3" />
+                <span className="font-medium text-gray-700 group-hover:text-gray-900">Terms & Conditions</span>
+              </Link>
+            </div>
+            <div className="mt-4 text-center">
+              <p className="text-xs text-gray-400">© {new Date().getFullYear()} Shivam General Store. All rights reserved.</p>
+            </div>
+          </div>
+
           <div className="pt-6 border-t mt-8 flex flex-col sm:flex-row gap-4">
-            <a href="/orders" className="w-full sm:w-auto">
+            <Link href="/orders" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full font-semibold border-gray-200 text-gray-700 hover:bg-gray-50">
                 <Package className="mr-2 h-4 w-4" /> My Orders
               </Button>
-            </a>
+            </Link>
             <form action={logoutAction} className="w-full sm:w-auto">
               <Button type="submit" variant="destructive" className="w-full font-semibold">
                 Logout
