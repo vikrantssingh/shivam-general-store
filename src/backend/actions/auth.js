@@ -53,7 +53,7 @@ export async function registerRetailAction(formData) {
     return { error: "Invalid fields" };
   }
 
-  const { email, password, fullName } = validatedFields.data;
+  const { email, password, fullName, phone } = validatedFields.data;
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -61,6 +61,7 @@ export async function registerRetailAction(formData) {
     options: {
       data: {
         full_name: fullName,
+        phone: phone,
         role: "retail",
       },
     },
@@ -205,6 +206,7 @@ export async function updateProfileAction(formData) {
   }
 
   revalidatePath("/account");
+  revalidatePath("/admin/customers");
   return { success: true };
 }
 

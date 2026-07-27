@@ -20,7 +20,7 @@ export default function RegisterPage() {
 
   const retailForm = useForm({
     resolver: zodResolver(retailRegisterSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", email: "", phone: "", password: "", confirmPassword: "" },
   });
 
   const shopkeeperForm = useForm({
@@ -134,6 +134,11 @@ export default function RegisterPage() {
                 <label className="text-sm font-semibold text-gray-700">Email Address</label>
                 <Input type="email" {...retailForm.register("email")} placeholder="Enter your email" className="bg-gray-50 focus-visible:ring-green-500" />
                 {retailForm.formState.errors.email && <p className="text-xs text-red-500">{retailForm.formState.errors.email.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Phone Number</label>
+                <Input {...retailForm.register("phone")} placeholder="Enter your phone number" className="bg-gray-50 focus-visible:ring-green-500" />
+                {retailForm.formState.errors.phone && <p className="text-xs text-red-500">{retailForm.formState.errors.phone.message}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Password</label>

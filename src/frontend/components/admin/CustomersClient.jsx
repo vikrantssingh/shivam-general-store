@@ -136,7 +136,7 @@ export default function CustomersClient({ users }) {
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-900">{user.email}</span>
-                        {user.phone && <span className="text-xs text-gray-500">{user.phone}</span>}
+                        <span className="text-xs text-gray-500">{user.phone || "-"}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -188,7 +188,7 @@ export default function CustomersClient({ users }) {
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-900">{cust.email}</span>
-                        {cust.phone && <span className="text-xs text-gray-500">{cust.phone}</span>}
+                        <span className="text-xs text-gray-500">{cust.phone || "-"}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">{new Date(cust.created_at).toLocaleDateString()}</TableCell>
@@ -240,7 +240,7 @@ export default function CustomersClient({ users }) {
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-900 font-medium">{sk.full_name}</span>
                         <span className="text-xs text-gray-500">{sk.email}</span>
-                        {sk.phone && <span className="text-xs text-gray-500">{sk.phone}</span>}
+                        <span className="text-xs text-gray-500">{sk.phone || "-"}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -294,7 +294,7 @@ export default function CustomersClient({ users }) {
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-900 font-medium">{sk.full_name}</span>
                         <span className="text-xs text-gray-500">{sk.email}</span>
-                        {sk.phone && <span className="text-xs text-gray-500">{sk.phone}</span>}
+                        <span className="text-xs text-gray-500">{sk.phone || "-"}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right align-middle">
