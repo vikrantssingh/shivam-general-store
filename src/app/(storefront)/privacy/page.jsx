@@ -24,7 +24,7 @@ export default function PrivacyPolicyPage() {
             <li>To process and fulfill your orders.</li>
             <li>To manage your account (retail or wholesale).</li>
             <li>To communicate with you regarding your orders or support queries.</li>
-            <li>To improve our store's functionality and customer experience.</li>
+            <li>To improve our store&apos;s functionality and customer experience.</li>
           </ul>
 
           <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">3. Data Security</h2>

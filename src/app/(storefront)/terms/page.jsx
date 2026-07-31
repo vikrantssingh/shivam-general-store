@@ -19,7 +19,7 @@ export default function TermsPage() {
           <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">1. Accounts and Registration</h2>
           <p>
             To purchase from our store, you must register an account. You agree to provide accurate and complete information. 
-            Wholesale accounts ("Shopkeeper" accounts) require admin approval before accessing wholesale pricing. 
+            Wholesale accounts (&quot;Shopkeeper&quot; accounts) require admin approval before accessing wholesale pricing. 
             We reserve the right to suspend or terminate accounts that provide false information.
           </p>
 
