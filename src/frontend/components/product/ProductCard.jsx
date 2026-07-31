@@ -4,6 +4,7 @@ import { Plus, Minus, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/frontend/context/CartContext";
+import Image from "next/image";
 
 export default function ProductCard({ product }) {
   const { addToCart, cart, updateQuantity } = useCart();
@@ -22,7 +23,13 @@ export default function ProductCard({ product }) {
     <Card className={`overflow-hidden border-gray-100 shadow-sm hover:shadow-md transition-shadow ${isOutOfStock ? 'opacity-75 grayscale-[0.5]' : ''}`}>
       <div className="relative aspect-square bg-gray-100 p-4">
         {product.image_url ? (
-          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover rounded-lg shadow-inner bg-white" />
+          <Image 
+            src={product.image_url} 
+            alt={product.name} 
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+            className="object-cover rounded-lg shadow-inner bg-white" 
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center rounded-lg bg-white shadow-inner">
             <span className="text-4xl">🛍️</span>
