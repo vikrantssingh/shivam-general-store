@@ -16,6 +16,33 @@ import { Plus, Search, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addProductAction, updateProductAction, deleteProductAction } from "@/backend/actions/admin-products";
 import { toast } from "sonner";
+import imageCompression from "browser-image-compression";
+
+const getSquareImageBlob = async (file) => {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => {
+      const size = Math.min(img.width, img.height);
+      const startX = (img.width - size) / 2;
+      const startY = (img.height - size) / 2;
+      
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, startX, startY, size, size, 0, 0, size, size);
+      
+      canvas.toBlob((blob) => {
+        if (!blob) reject(new Error("Canvas to Blob failed"));
+        const newFile = new File([blob], file.name, { type: "image/jpeg" });
+        resolve(newFile);
+      }, "image/jpeg", 1);
+    };
+    img.onerror = (error) => reject(error);
+  });
+};
 
 export default function ProductsClient({ initialProducts, categories, filterLowStock = false }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,6 +87,34 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
     e.preventDefault();
     setIsLoading(true);
     const formData = new FormData(e.target);
+    
+    const imageFile = formData.get("image");
+    if (imageFile && imageFile.size > 0) {
+      try {
+        toast.info("Preparing & compressing image...", { id: "img-compress" });
+        
+        // 1. Attempt to crop to perfect square
+        let fileToCompress = imageFile;
+        try {
+          fileToCompress = await getSquareImageBlob(imageFile);
+        } catch (squareErr) {
+          console.warn("Squaring failed, proceeding with original dimensions:", squareErr);
+        }
+        
+        // 2. Compress to ~80KB (Guaranteed step)
+        const options = {
+          maxSizeMB: 0.08,
+          useWebWorker: true,
+        };
+        const compressedFile = await imageCompression(fileToCompress, options);
+        
+        formData.set("image", compressedFile, compressedFile.name);
+        toast.dismiss("img-compress");
+      } catch (error) {
+        console.error("Image processing error:", error);
+        toast.error("Failed to process image. Proceeding with original.", { id: "img-compress" });
+      }
+    }
     
     if (editingProduct) {
       formData.append("id", editingProduct.id);
@@ -119,7 +174,7 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
                 <p className="text-xs text-gray-500 mt-1">Upload a new image to replace the current one.</p>
               </div>
             )}
-            <Input type="file" name="image" accept="image/*" className="cursor-pointer" />
+            <Input type="file" name="image" accept="image/*" capture="environment" className="cursor-pointer" />
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

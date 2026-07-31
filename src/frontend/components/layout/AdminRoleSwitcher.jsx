@@ -51,7 +51,12 @@ export default function AdminRoleSwitcher() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
         className="flex items-center gap-1 text-xs sm:text-sm text-green-800 border border-green-200 bg-green-50 hover:bg-green-100 font-bold px-2 sm:px-3 py-1.5 rounded-md transition-colors"
       >
         {buttonLabel} <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
