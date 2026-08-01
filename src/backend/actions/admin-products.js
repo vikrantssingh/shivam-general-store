@@ -1,7 +1,13 @@
 "use server";
 
 import { createClient } from "@/backend/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+
+const supabaseAdmin = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function addProductAction(formData) {
   const supabase = createClient();
@@ -115,6 +121,19 @@ export async function updateProductAction(formData) {
     
     if (uploadData) {
       const { data: { publicUrl } } = supabase.storage.from("products").getPublicUrl(fileName);
+      
+      if (image_url) {
+        try {
+          const urlParts = image_url.split('/products/');
+          if (urlParts.length === 2) {
+            const oldFileName = urlParts[1].split('?')[0];
+            await supabaseAdmin.storage.from("products").remove([oldFileName]);
+          }
+        } catch (e) {
+          console.error("Error deleting old image:", e);
+        }
+      }
+      
       image_url = publicUrl;
     }
   }
@@ -153,6 +172,20 @@ export async function deleteProductAction(formData) {
 
   const id = formData.get("id");
   if (!id) return { error: "Missing ID" };
+
+  const { data: currentProduct } = await supabase.from("products").select("image_url").eq("id", id).single();
+  
+  if (currentProduct && currentProduct.image_url) {
+    try {
+      const urlParts = currentProduct.image_url.split('/products/');
+      if (urlParts.length === 2) {
+        const fileName = urlParts[1].split('?')[0];
+        await supabaseAdmin.storage.from("products").remove([fileName]);
+      }
+    } catch (e) {
+      console.error("Error deleting image from storage:", e);
+    }
+  }
 
   const { error } = await supabase.from("products").delete().eq("id", id);
   

@@ -101,9 +101,9 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
           console.warn("Squaring failed, proceeding with original dimensions:", squareErr);
         }
         
-        // 2. Compress to ~80KB (Guaranteed step)
+        // 2. Compress to ~30KB (Guaranteed step)
         const options = {
-          maxSizeMB: 0.08,
+          maxSizeMB: 0.03,
           useWebWorker: true,
         };
         const compressedFile = await imageCompression(fileToCompress, options);
