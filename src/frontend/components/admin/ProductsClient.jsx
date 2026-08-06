@@ -88,7 +88,10 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
     setIsLoading(true);
     const formData = new FormData(e.target);
     
-    const imageFile = formData.get("image");
+    const imageCamera = formData.get("image_camera");
+    const imageGallery = formData.get("image_gallery");
+    const imageFile = (imageCamera && imageCamera.size > 0) ? imageCamera : (imageGallery && imageGallery.size > 0 ? imageGallery : null);
+    
     if (imageFile && imageFile.size > 0) {
       try {
         toast.info("Preparing & compressing image...", { id: "img-compress" });
@@ -174,7 +177,16 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
                 <p className="text-xs text-gray-500 mt-1">Upload a new image to replace the current one.</p>
               </div>
             )}
-            <Input type="file" name="image" accept="image/*" className="cursor-pointer" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500 font-medium">📸 Direct Camera</label>
+                <Input type="file" name="image_camera" accept="image/*" capture="environment" className="cursor-pointer text-xs" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500 font-medium">🖼️ Upload from Gallery</label>
+                <Input type="file" name="image_gallery" accept="image/*" className="cursor-pointer text-xs" />
+              </div>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
