@@ -174,7 +174,7 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
                 <p className="text-xs text-gray-500 mt-1">Upload a new image to replace the current one.</p>
               </div>
             )}
-            <Input type="file" name="image" accept="image/*" capture="environment" className="cursor-pointer" />
+            <Input type="file" name="image" accept="image/*" className="cursor-pointer" />
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

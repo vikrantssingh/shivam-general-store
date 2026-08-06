@@ -62,6 +62,14 @@ export default async function StorefrontHome({ searchParams }) {
     }
   }
 
+  // Optimize Egress: Limit home screen to 24 items.
+  // If searching or viewing a category, limit to 100 items to prevent huge data loads.
+  if (!q && (!categoryId || categoryId === "all")) {
+    productsQuery = productsQuery.limit(24);
+  } else {
+    productsQuery = productsQuery.limit(100);
+  }
+
   const { data: products } = await productsQuery;
 
   // Use a fallback if categories are empty
