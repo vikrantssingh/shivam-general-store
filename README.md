@@ -2,7 +2,9 @@
 
 ![Shivam General Store](https://via.placeholder.com/1200x400.png?text=Shivam+General+Store+-+Official+E-commerce+Platform)
 
-A production-quality, mobile-first e-commerce website custom-built for a single physical retail store. 
+**🌐 Live Demo / Official Website:** [https://shivam-general-store.vercel.app](https://shivam-general-store.vercel.app/)
+
+A production-quality, mobile-first e-commerce website custom-built for a physical retail store. 
 
 This platform empowers the shop owner to transition their entire brick-and-mortar operation online, catering seamlessly to both **everyday retail customers** and **bulk-purchasing shopkeepers**, all managed from a powerful, centralized Admin Dashboard.
 
@@ -55,7 +57,20 @@ The Owner/Admin has absolute control over the platform via a secure, protected d
 
 ---
 
-## 3. Technology Stack
+## 3. High-Performance Optimizations
+
+To ensure the platform scales flawlessly to 10,000+ items while remaining on Free Tier cloud plans, several advanced optimizations are integrated:
+
+- **Aggressive Image Compression:** Uses `browser-image-compression` to force all admin uploads below **30 KB**, saving massive storage capacity.
+- **Automated Square Cropping:** Custom HTML5 Canvas logic instantly crops photos into a perfect 1:1 square on the device before uploading, ensuring UI uniformity.
+- **Auto Storage Cleanup:** The Supabase Admin Client automatically bypasses Row Level Security to hunt down and permanently delete old/orphaned images when a product is updated or deleted, maintaining pristine storage.
+- **Bandwidth (Egress) Optimization:** The homepage is hard-capped to load only 24 items initially, preventing massive database queries and protecting cloud egress limits.
+- **Dual Mobile Upload UI:** Features explicit "Direct Camera" and "Upload from Gallery" buttons for a native-like mobile admin experience.
+- **Race Condition Prevention:** Validates live stock precisely at the millisecond of order placement to prevent over-selling.
+
+---
+
+## 4. Technology Stack
 
 Built with modern, scalable, and highly performant technologies.
 
@@ -63,7 +78,7 @@ Built with modern, scalable, and highly performant technologies.
 - **Next.js (App Router):** Leveraging server components and server actions for optimal performance and SEO.
 - **React (JavaScript):** Component-based architecture without the overhead of TypeScript, as requested.
 - **Tailwind CSS (v3):** Utility-first styling ensuring a robust, mobile-first responsive design.
-- **Shadcn UI:** Premium, accessible, and customizable UI components (Buttons, Tables, Tabs, Inputs, Radios).
+- **Shadcn UI:** Premium, accessible, and customizable UI components.
 - **Lucide React Icons:** Clean and modern iconography.
 
 ### Backend & Database
@@ -71,55 +86,12 @@ Built with modern, scalable, and highly performant technologies.
 - **Supabase PostgreSQL:** Highly relational data modeling utilizing Enums and complex constraints.
 - **Supabase Auth:** Secure JWT-based authentication bridging Server Components, Middleware, and Client Components.
 
-### Tooling & Integrations
-- **React Hook Form & Zod:** Bulletproof client and server-side form validation.
-- **Recharts:** Responsive, composable charting for the Admin Dashboard.
-- **Sonner:** Beautiful, unobtrusive toast notifications for state mutations.
-
 ---
 
-## 4. Database Schema & Security Strategy
+## 💬 Feedback & Suggestions
 
-The application uses a robust PostgreSQL schema (located in `supabase/schema.sql`). 
-
-### Security & Row Level Security (RLS)
-Security is handled natively at the database level using Supabase RLS, ensuring zero data leakage:
-
-1. **Role-Based Access Control (RBAC):** Users are strictly categorized via a `user_role` Enum:
-   - `retail`
-   - `shopkeeper_pending`
-   - `shopkeeper_approved`
-   - `admin`
-2. **Data Isolation:**
-   - **Profiles:** Users can only `SELECT` and `UPDATE` their own profile data.
-   - **Orders:** Customers can only view their own orders. Admins can view all orders.
-   - **Products:** Anyone can view products, but only the `admin` role can `INSERT`, `UPDATE`, or `DELETE`.
-3. **Automated Triggers:** A `handle_new_user()` trigger automatically intercepts Supabase Auth signups, extracting metadata to initialize the public `users` profile safely.
-
-### Protected Routes
-Next.js Middleware rigorously protects all `/admin` routes. Any unauthenticated or unauthorized access attempt is instantly redirected to the `/login` page before the server even renders the page.
-
----
-
-## 5. Deployment Strategy
-
-The application is architected to be deployed seamlessly on **Vercel**.
-
-1. **Environment Variables:** Requires `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-2. **Stateless Edge:** Uses Next.js Server Actions exclusively for data mutations, eliminating the need for a separate Node.js/Express backend.
-3. **Database Migrations:** The `supabase/schema.sql` can be executed directly in the Supabase SQL Editor to instantly provision the database architecture.
-
----
-
-## 6. Local Development
-
-To run this project locally:
-
-1. Clone the repository.
-2. Run `npm install` to install dependencies.
-3. Copy `.env.example` to `.env.local` and populate it with your Supabase credentials.
-4. Execute `supabase/schema.sql` in your Supabase project.
-5. Run `npm run dev` to start the development server at `http://localhost:3000`.
+If you have any feedback or suggestions to make this platform even better, please feel free to email me:
+📧 **Email:** [vikrantsingh112211@gmail.com](mailto:vikrantsingh112211@gmail.com)
 
 ---
 *Designed and built for production. Crafted with care.*
