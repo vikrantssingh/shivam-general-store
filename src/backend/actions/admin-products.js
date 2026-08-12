@@ -55,7 +55,7 @@ export async function addProductAction(formData) {
     }
   }
 
-  const { error } = await supabase.from("products").insert({
+  const { error } = await supabaseAdmin.from("products").insert({
     name,
     category_id: (!category_id || category_id === "none") ? null : category_id,
     unit,
@@ -138,7 +138,7 @@ export async function updateProductAction(formData) {
     }
   }
 
-  const { error } = await supabase.from("products").update({
+  const { error } = await supabaseAdmin.from("products").update({
     name,
     category_id: (!category_id || category_id === "none") ? null : category_id,
     unit,
@@ -187,7 +187,7 @@ export async function deleteProductAction(formData) {
     }
   }
 
-  const { error } = await supabase.from("products").delete().eq("id", id);
+  const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
   
   if (error) return { error: error.message };
 
