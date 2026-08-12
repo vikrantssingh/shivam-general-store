@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Package, Truck, Store, Clock, CheckCircle, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Package, Truck, Store, Clock, CheckCircle, ChevronDown, ChevronUp, Download, XCircle } from "lucide-react";
 import Link from "next/link";
 import { downloadThermalReceipt } from "@/frontend/utils/pdfGenerator";
+import { cancelCustomerOrderAction } from "@/backend/actions/order";
+import { toast } from "sonner";
 
 const statusConfig = {
   placed: { color: "bg-blue-50 text-blue-700 border-blue-200", label: "Order Placed", icon: Package },
@@ -16,6 +18,30 @@ const statusConfig = {
 
 export default function OrderCard({ order }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [submittingCancel, setSubmittingCancel] = useState(false);
+
+  const handleCancel = async () => {
+    if (!cancelReason.trim()) {
+      toast.error("Please provide a reason for cancellation");
+      return;
+    }
+    setSubmittingCancel(true);
+    const formData = new FormData();
+    formData.append("id", order.id);
+    formData.append("reason", cancelReason);
+    
+    const res = await cancelCustomerOrderAction(formData);
+    setSubmittingCancel(false);
+    
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Order cancelled successfully");
+      setIsCancelling(false);
+    }
+  };
 
   const config = statusConfig[order.status] || statusConfig.placed;
   const StatusIcon = config.icon;
@@ -28,7 +54,7 @@ export default function OrderCard({ order }) {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
       {/* Header */}
       <div className="bg-gray-50 p-4 border-b">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <div>
               <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Order #</p>
@@ -39,7 +65,8 @@ export default function OrderCard({ order }) {
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col items-end gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-4 sm:gap-6">
             <div className="text-right">
               <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total</p>
               <p className="text-sm font-bold text-gray-900">₹{grandTotal}</p>
@@ -50,6 +77,48 @@ export default function OrderCard({ order }) {
             <button onClick={() => downloadThermalReceipt(order, order.users)} className="text-sm font-bold text-white bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-1.5">
               <Download className="h-4 w-4" /> Download Bill
             </button>
+            </div>
+
+            {/* Inline Cancel Section */}
+            {(order.status === "placed" || order.status === "preparing") && (
+              <div className="flex flex-col items-end gap-2 w-full max-w-[280px]">
+                {!isCancelling ? (
+                  <button 
+                    onClick={() => setIsCancelling(true)}
+                    className="text-sm font-bold text-red-600 hover:text-red-700 flex items-center gap-1.5 transition-colors"
+                  >
+                    <XCircle className="h-4 w-4" /> Cancel Order
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2 w-full bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                    <p className="text-xs font-bold text-gray-900">Why are you cancelling?</p>
+                    <textarea 
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder="E.g., Changed my mind..."
+                      className="w-full text-xs border border-gray-200 rounded-lg p-2 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 min-h-[60px]"
+                      disabled={submittingCancel}
+                    />
+                    <div className="flex items-center gap-2 justify-end mt-1">
+                      <button 
+                        onClick={() => setIsCancelling(false)}
+                        disabled={submittingCancel}
+                        className="text-xs font-bold text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Keep Order
+                      </button>
+                      <button 
+                        onClick={handleCancel}
+                        disabled={submittingCancel}
+                        className="text-xs font-bold text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {submittingCancel ? "Cancelling..." : "Confirm Cancel"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-3">

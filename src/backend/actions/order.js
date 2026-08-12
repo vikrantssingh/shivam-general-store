@@ -201,3 +201,82 @@ export async function updateOrderStatusAction(formData) {
   revalidatePath("/admin/orders");
   return { success: true };
 }
+
+export async function cancelCustomerOrderAction(formData) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Unauthorized" };
+
+  const id = formData.get("id");
+  const reason = formData.get("reason") || "No reason provided";
+
+  if (!id) return { error: "Missing order ID" };
+
+  // Fetch existing order to verify ownership and check status
+  const { data: order } = await supabase
+    .from("orders")
+    .select("status, delivery_address, user_id")
+    .eq("id", id)
+    .single();
+
+  if (!order) return { error: "Order not found" };
+  if (order.user_id !== user.id) return { error: "Unauthorized" };
+
+  if (order.status !== "placed" && order.status !== "preparing") {
+    return { error: "Order cannot be cancelled at this stage." };
+  }
+
+  // Restore stock for this order's items securely
+  const { data: orderItems } = await supabase
+    .from("order_items")
+    .select("product_id, quantity")
+    .eq("order_id", id);
+
+  if (orderItems && orderItems.length > 0) {
+    const adminSupabase = createAdminClient();
+    
+    // We need to fetch current stock for these products first to add back correctly
+    const productIds = orderItems.map(item => item.product_id);
+    const { data: dbProducts } = await adminSupabase
+      .from("products")
+      .select("id, stock")
+      .in("id", productIds);
+
+    if (dbProducts) {
+      for (const item of orderItems) {
+        const dbProduct = dbProducts.find(p => p.id === item.product_id);
+        if (dbProduct) {
+          const newStock = (dbProduct.stock || 0) + item.quantity;
+          await adminSupabase
+            .from("products")
+            .update({ stock: newStock })
+            .eq("id", item.product_id);
+        }
+      }
+    }
+  }
+
+  let updateData = {
+    status: "cancelled",
+    updated_at: new Date().toISOString(),
+    delivery_address: {
+      ...(order.delivery_address || {}),
+      cancellation_reason: reason
+    }
+  };
+
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from("orders")
+    .update(updateData)
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/orders");
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+  return { success: true };
+}

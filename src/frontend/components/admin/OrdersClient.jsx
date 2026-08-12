@@ -259,9 +259,16 @@ export default function OrdersClient({ initialOrders }) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={`${statusStyles[order.status]} capitalize`}>
-                    {order.status.replace(/_/g, ' ')}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant="outline" className={`${statusStyles[order.status]} capitalize w-fit`}>
+                      {order.status.replace(/_/g, ' ')}
+                    </Badge>
+                    {order.status === 'cancelled' && order.delivery_address?.cancellation_reason && (
+                      <span className="text-xs text-red-600 font-medium max-w-[200px] truncate" title={order.delivery_address.cancellation_reason}>
+                        Reason: {order.delivery_address.cancellation_reason}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2 items-center">
