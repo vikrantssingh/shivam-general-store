@@ -42,6 +42,21 @@ export async function updateSession(request) {
       url.pathname = '/login'
       return NextResponse.redirect(url)
     }
+
+    // Additional check for admin routes
+    if (pathname.startsWith('/admin')) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile || profile.role !== 'admin') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+      }
+    }
   }
 
   return supabaseResponse

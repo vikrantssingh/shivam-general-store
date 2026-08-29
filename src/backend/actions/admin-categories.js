@@ -3,9 +3,19 @@
 import { createClient } from "@/backend/supabase/server";
 import { revalidatePath } from "next/cache";
 
+async function verifyAdmin(supabase) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  
+  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
+  return profile && profile.role === "admin";
+}
+
 // Add a new category
 export async function addCategoryAction(formData) {
   const supabase = createClient();
+  if (!(await verifyAdmin(supabase))) return { error: "Unauthorized" };
+
   const name = formData.get("name");
   const status = formData.get("status") === "true"; // Assuming radio or switch returns 'true' string
 
@@ -26,6 +36,8 @@ export async function addCategoryAction(formData) {
 // Edit an existing category
 export async function updateCategoryAction(formData) {
   const supabase = createClient();
+  if (!(await verifyAdmin(supabase))) return { error: "Unauthorized" };
+
   const id = formData.get("id");
   const name = formData.get("name");
   const status = formData.get("status") === "true";
@@ -48,6 +60,8 @@ export async function updateCategoryAction(formData) {
 // Delete a category
 export async function deleteCategoryAction(formData) {
   const supabase = createClient();
+  if (!(await verifyAdmin(supabase))) return { error: "Unauthorized" };
+
   const id = formData.get("id");
 
   if (!id) return { error: "Category ID is required" };
@@ -66,6 +80,8 @@ export async function deleteCategoryAction(formData) {
 // Quick edit product from category modal
 export async function quickUpdateProductAction(formData) {
   const supabase = createClient();
+  if (!(await verifyAdmin(supabase))) return { error: "Unauthorized" };
+
   const id = formData.get("id");
   const name = formData.get("name");
   const stock = parseInt(formData.get("stock"));
@@ -86,6 +102,8 @@ export async function quickUpdateProductAction(formData) {
 // Quick delete product from category modal
 export async function quickDeleteProductAction(formData) {
   const supabase = createClient();
+  if (!(await verifyAdmin(supabase))) return { error: "Unauthorized" };
+
   const id = formData.get("id");
 
   if (!id) return { error: "Product ID is required" };
