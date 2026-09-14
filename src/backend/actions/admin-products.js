@@ -36,8 +36,18 @@ export async function addProductAction(formData) {
     return { error: "Missing required fields" };
   }
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
   let image_url = null;
   if (imageFile && imageFile.size > 0) {
+    if (imageFile.size > MAX_FILE_SIZE) {
+      return { error: "Image file is too large (max 5MB)" };
+    }
+    if (!ALLOWED_MIME_TYPES.includes(imageFile.type)) {
+      return { error: "Only JPG, PNG, and WebP images are allowed" };
+    }
+
     const fileExt = imageFile.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -105,9 +115,19 @@ export async function updateProductAction(formData) {
     return { error: "Missing required fields" };
   }
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
   let image_url = formData.get("existing_image_url") || null;
   
   if (imageFile && imageFile.size > 0) {
+    if (imageFile.size > MAX_FILE_SIZE) {
+      return { error: "Image file is too large (max 5MB)" };
+    }
+    if (!ALLOWED_MIME_TYPES.includes(imageFile.type)) {
+      return { error: "Only JPG, PNG, and WebP images are allowed" };
+    }
+
     const fileExt = imageFile.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     const { data: uploadData, error: uploadError } = await supabase.storage

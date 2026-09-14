@@ -167,8 +167,18 @@ export async function updateProfileAction(formData) {
   const avatarFile = formData.get("avatar");
 
   let avatar_url = undefined;
+  
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
   if (avatarFile && avatarFile.size > 0) {
+    if (avatarFile.size > MAX_FILE_SIZE) {
+      return { error: "Avatar file is too large (max 5MB)" };
+    }
+    if (!ALLOWED_MIME_TYPES.includes(avatarFile.type)) {
+      return { error: "Only JPG, PNG, and WebP images are allowed for avatars" };
+    }
+
     const fileExt = avatarFile.name.split('.').pop();
     const fileName = `${user.id}-${Date.now()}.${fileExt}`;
     const { data: uploadData, error: uploadError } = await supabase.storage

@@ -148,7 +148,8 @@ export async function placeOrderAction(orderData, cartItems) {
       }
       
       if (!data || data.length === 0) {
-        return { error: "SYSTEM ALERT: Stock update failed! Aapki .env.local mein SUPABASE_SERVICE_ROLE_KEY missing hai ya galat hai. Pura order cancel kar diya gaya hai." };
+        console.error("SYSTEM ALERT: Stock update failed for product", item.id, "- Check SUPABASE_SERVICE_ROLE_KEY in .env.local");
+        return { error: "A technical error occurred while processing your order. Please try again or contact support." };
       }
     }
   }
