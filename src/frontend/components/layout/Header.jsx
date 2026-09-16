@@ -74,7 +74,7 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <Link href="/" className="text-sm font-medium hover:text-green-700">Home</Link>
-          <Link href="/categories" className="text-sm font-medium hover:text-green-700">Categories</Link>
+          {/* <Link href="/categories" className="text-sm font-medium hover:text-green-700">Categories</Link> */}
           <Link href="/offers" className="text-sm font-medium hover:text-green-700">Offers</Link>
         </nav>
 
