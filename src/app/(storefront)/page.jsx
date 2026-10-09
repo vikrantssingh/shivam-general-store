@@ -1,4 +1,4 @@
-import ProductCard from "@/frontend/components/product/ProductCard";
+import InfiniteProductGrid from "@/frontend/components/storefront/InfiniteProductGrid";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/backend/supabase/server";
@@ -62,13 +62,8 @@ export default async function StorefrontHome({ searchParams }) {
     }
   }
 
-  // Optimize Egress: Limit home screen to 24 items.
-  // If searching or viewing a category, limit to 100 items to prevent huge data loads.
-  if (!q && (!categoryId || categoryId === "all")) {
-    productsQuery = productsQuery.limit(24);
-  } else {
-    productsQuery = productsQuery.limit(100);
-  }
+  // Fetch initial batch of 14 items. The InfiniteProductGrid will fetch more as the user scrolls.
+  productsQuery = productsQuery.limit(14);
 
   const { data: products } = await productsQuery;
 
@@ -111,45 +106,12 @@ export default async function StorefrontHome({ searchParams }) {
           {!q && <span className="text-sm font-semibold text-green-700 cursor-pointer hover:underline">View All</span>}
         </div>
         
-        {products && products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-6">
-            {products.map((product) => {
-              // Determine effective price and MRP based on user role
-              const effectivePrice = isShopkeeper && product.shopkeeper_price 
-                ? product.shopkeeper_price 
-                : product.retail_price;
-                
-              const displayMrp = isShopkeeper && product.shopkeeper_price 
-                ? product.retail_price // Shopkeepers see retail price as MRP
-                : (product.mrp || product.retail_price);
-                
-              const discount = displayMrp && displayMrp > effectivePrice
-                ? Math.round(((displayMrp - effectivePrice) / displayMrp) * 100) 
-                : 0;
-
-              const maxLimit = isShopkeeper ? product.shopkeeper_limit : product.retail_limit;
-              const displayUnit = isShopkeeper && product.shopkeeper_unit ? product.shopkeeper_unit : product.unit;
-
-              return (
-                <ProductCard key={product.id} product={{
-                  id: product.id,
-                  name: product.name,
-                  unit: displayUnit,
-                  price: effectivePrice,
-                  mrp: displayMrp,
-                  discount: discount,
-                  image_url: product.image_url,
-                  maxLimit: maxLimit,
-                  stock: product.stock
-                }} />
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
-            <p className="text-gray-500">No products available at the moment. Please check back later.</p>
-          </div>
-        )}
+        <InfiniteProductGrid 
+          initialProducts={products} 
+          isShopkeeper={isShopkeeper} 
+          categoryId={categoryId} 
+          q={q} 
+        />
       </div>
     </div>
   );
