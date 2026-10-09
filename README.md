@@ -1,6 +1,6 @@
 # SHIVAM GENERAL STORE
 
-![Shivam General Store](https://via.placeholder.com/1200x400.png?text=Shivam+General+Store+-+Official+E-commerce+Platform)
+![Shivam General Store](./public/banner.jpg)
 
 **🌐 Live Demo / Official Website:** [https://shivam-general-store.vercel.app](https://shivam-general-store.vercel.app/)
 
