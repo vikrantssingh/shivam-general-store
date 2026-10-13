@@ -4,6 +4,7 @@ import { createClient } from "@/backend/supabase/server";
 import { createAdminClient } from "@/backend/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export async function placeOrderAction(orderData, cartItems) {
   const supabase = createClient();
@@ -15,7 +16,14 @@ export async function placeOrderAction(orderData, cartItems) {
 
   // Verify role and cart
   const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-  const isShopkeeper = profile?.role === "shopkeeper_approved";
+  let isShopkeeper = profile?.role === "shopkeeper_approved";
+  if (profile?.role === "admin") {
+    const cookieStore = cookies();
+    const viewAs = cookieStore.get("admin_viewAs")?.value;
+    if (viewAs === "shopkeeper") {
+      isShopkeeper = true;
+    }
+  }
 
   // Fetch LIVE product data
   const productIds = cartItems.map(item => item.id);
@@ -94,6 +102,16 @@ export async function placeOrderAction(orderData, cartItems) {
 
   // Calculate total amount from correctedCart
   const totalAmount = correctedCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+  // Validate minimum purchase limit: ₹500 for retailer, ₹2000 for shopkeeper
+  const minLimit = isShopkeeper ? 2000 : 500;
+  if (totalAmount < minLimit) {
+    return {
+      error: isShopkeeper
+        ? `Minimum order amount for shopkeeper is ₹2000. Your current order total is ₹${totalAmount}. Please add more items to place order.`
+        : `Minimum order amount for retailer is ₹500. Your current order total is ₹${totalAmount}. Please add more items to place order.`
+    };
+  }
 
   // Create the Order
   const { data: order, error: orderError } = await supabase

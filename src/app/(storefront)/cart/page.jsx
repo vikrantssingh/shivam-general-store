@@ -1,13 +1,52 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/frontend/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Trash2, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { createClient } from "@/backend/supabase/client";
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, totalPrice } = useCart();
+  const [isShopkeeper, setIsShopkeeper] = useState(false);
+
+  useEffect(() => {
+    async function checkRole() {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+
+        let shopkeeper = profile?.role === "shopkeeper_approved";
+        if (profile?.role === "admin") {
+          const match = document.cookie.match(new RegExp('(^| )admin_viewAs=([^;]+)'));
+          if (match && match[2] === "shopkeeper") {
+            shopkeeper = true;
+          }
+        }
+        setIsShopkeeper(shopkeeper);
+      }
+    }
+    checkRole();
+  }, []);
+
+  const minLimit = isShopkeeper ? 2000 : 500;
+
+  const handleCheckoutClick = (e) => {
+    if (totalPrice < minLimit) {
+      e.preventDefault();
+      const alertMsg = isShopkeeper
+        ? `Order amount should be more than ₹2000 for shopkeepers. Your current total is ₹${totalPrice}.`
+        : `Order amount should be more than ₹500 for retailers. Your current total is ₹${totalPrice}.`;
+      alert(alertMsg);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -99,7 +138,21 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Link href="/checkout">
+              {totalPrice < minLimit && (
+                <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2.5">
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">
+                      {isShopkeeper ? "Shopkeeper Minimum Order: ₹2,000" : "Retailer Minimum Order: ₹500"}
+                    </span>
+                    <p className="mt-0.5 text-amber-800">
+                      Current total is ₹{totalPrice}. Add items worth ₹{minLimit - totalPrice} more to proceed to checkout.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <Link href="/checkout" onClick={handleCheckoutClick}>
                 <Button className="w-full mt-6 bg-green-700 hover:bg-green-800 text-white font-bold h-12 rounded-xl">
                   Proceed to Checkout
                 </Button>

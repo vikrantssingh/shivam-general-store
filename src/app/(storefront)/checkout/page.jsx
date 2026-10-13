@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, MapPin, Store } from "lucide-react";
+import { Loader2, MapPin, Store, AlertCircle } from "lucide-react";
 import { createClient } from "@/backend/supabase/client";
 
 export default function CheckoutPage() {
@@ -28,6 +28,7 @@ export default function CheckoutPage() {
     pincode: ""
   });
   const [user, setUser] = useState(null);
+  const [isShopkeeper, setIsShopkeeper] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,22 @@ export default function CheckoutPage() {
         fullName: session.user.user_metadata?.full_name || "",
         phone: session.user.user_metadata?.phone || ""
       }));
+
+      // Fetch user role
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+
+      let shopkeeperStatus = profile?.role === "shopkeeper_approved";
+      if (profile?.role === "admin") {
+        const match = document.cookie.match(new RegExp('(^| )admin_viewAs=([^;]+)'));
+        if (match && match[2] === "shopkeeper") {
+          shopkeeperStatus = true;
+        }
+      }
+      setIsShopkeeper(shopkeeperStatus);
       setAuthChecked(true);
     }
     checkAuth();
@@ -67,6 +84,17 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    // 1. Check if retailer or shopkeeper, and 2. Check the price limit
+    const minLimit = isShopkeeper ? 2000 : 500;
+    if (totalPrice < minLimit) {
+      const alertMsg = isShopkeeper
+        ? `Order amount should be more than ₹2000 for shopkeepers. Your current total is ₹${totalPrice}.`
+        : `Order amount should be more than ₹500 for retailers. Your current total is ₹${totalPrice}.`;
+      alert(alertMsg);
+      toast.error(alertMsg);
+      return;
+    }
+
     if (deliveryType === "home_delivery") {
       if (!address.fullName || !address.phone || !address.addressLine1 || !address.city || !address.pincode) {
         toast.error("Please fill in all address fields.");
@@ -84,6 +112,7 @@ export default function CheckoutPage() {
         updateEntireCart(result.correctedCart);
         toast.error(result.message, { duration: 6000 });
       } else {
+        alert(result.error);
         toast.error(result.error);
       }
     } else {
@@ -218,6 +247,20 @@ export default function CheckoutPage() {
                   <span>₹{deliveryType === 'store_pickup' ? totalPrice : totalPrice + 40}</span>
                 </div>
               </div>
+
+              {totalPrice < (isShopkeeper ? 2000 : 500) && (
+                <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2.5">
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">
+                      {isShopkeeper ? "Shopkeeper Minimum Order: ₹2,000" : "Retailer Minimum Order: ₹500"}
+                    </span>
+                    <p className="mt-0.5 text-amber-800">
+                      Current total is ₹{totalPrice}. Add items worth ₹{(isShopkeeper ? 2000 : 500) - totalPrice} more to meet the limit.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <Button 
                 onClick={handlePlaceOrder}
