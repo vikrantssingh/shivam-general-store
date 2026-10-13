@@ -39,10 +39,14 @@ export default async function StorefrontHome({ searchParams }) {
     .select("*")
     .order("name");
 
-  // Fetch products
+  // Fetch products (protect wholesale pricing columns for retail customers)
+  const selectColumns = isShopkeeper 
+    ? "*" 
+    : "id, category_id, name, description, unit, image_url, retail_price, mrp, stock, retail_limit, low_stock_threshold, status, retail_status, wholesale_status, created_at, updated_at";
+
   let productsQuery = supabase
     .from("products")
-    .select("*")
+    .select(selectColumns)
     .eq(isShopkeeper ? "wholesale_status" : "retail_status", true)
     .order("created_at", { ascending: false });
 

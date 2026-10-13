@@ -25,7 +25,7 @@ export async function loginAction(formData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: "Invalid email or password" };
   }
 
   // Fetch the user's role to determine redirect destination
@@ -127,7 +127,9 @@ export async function forgotPasswordAction(formData) {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("Password reset error:", error.message);
+  }
   return { success: true };
 }
 

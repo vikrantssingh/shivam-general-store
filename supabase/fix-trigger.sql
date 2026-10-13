@@ -10,7 +10,10 @@ BEGIN
       new.id, 
       new.email, 
       COALESCE(new.raw_user_meta_data->>'full_name', 'Unknown User'), 
-      COALESCE((new.raw_user_meta_data->>'role')::user_role, 'retail'::user_role)
+      CASE 
+        WHEN new.raw_user_meta_data->>'role' = 'shopkeeper_pending' THEN 'shopkeeper_pending'::user_role
+        ELSE 'retail'::user_role
+      END
     );
   EXCEPTION WHEN OTHERS THEN
     -- Ignore the error so the user is still created in Supabase Auth

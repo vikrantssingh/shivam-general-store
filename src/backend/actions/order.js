@@ -14,6 +14,19 @@ export async function placeOrderAction(orderData, cartItems) {
     return { error: "You must be logged in to place an order." };
   }
 
+  // Rate Limiting: Prevent rapid double-submission or bot spam (10-second cooldown)
+  const tenSecondsAgo = new Date(Date.now() - 10000).toISOString();
+  const { data: recentOrders } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("user_id", user.id)
+    .gte("created_at", tenSecondsAgo)
+    .limit(1);
+
+  if (recentOrders && recentOrders.length > 0) {
+    return { error: "Please wait a few seconds before placing another order." };
+  }
+
   // Verify role and cart
   const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
   let isShopkeeper = profile?.role === "shopkeeper_approved";
@@ -149,26 +162,24 @@ export async function placeOrderAction(orderData, cartItems) {
     return { error: "Failed to add items to order: " + itemsError.message };
   }
 
-  // Deduct stock securely for each item immediately using the Admin Client
+  // Deduct stock atomically to prevent race conditions and overselling
   const adminSupabase = createAdminClient();
   for (const item of correctedCart) {
-    const dbProduct = dbProducts.find(p => p.id === item.id);
-    if (dbProduct) {
-      const newStock = Math.max(0, (dbProduct.stock || 0) - item.quantity);
-      const { data, error: stockError } = await adminSupabase
-        .from("products")
-        .update({ stock: newStock })
-        .eq("id", item.id)
-        .select();
-        
-      if (stockError) {
-        return { error: "Database error while updating stock: " + stockError.message };
-      }
-      
-      if (!data || data.length === 0) {
-        console.error("SYSTEM ALERT: Stock update failed for product", item.id, "- Check SUPABASE_SERVICE_ROLE_KEY in .env.local");
-        return { error: "A technical error occurred while processing your order. Please try again or contact support." };
-      }
+    const { data: success, error: stockError } = await adminSupabase.rpc('decrement_product_stock', {
+      p_product_id: item.id,
+      p_quantity: item.quantity,
+    });
+
+    if (stockError) {
+      console.error("Stock deduction RPC error:", stockError);
+      return { error: "Database error while updating stock." };
+    }
+
+    if (!success) {
+      return { 
+        error: "CART_UPDATED", 
+        message: `Item "${item.name}" was just purchased by another customer and is now out of stock. Please review your cart.` 
+      };
     }
   }
 
@@ -246,7 +257,7 @@ export async function cancelCustomerOrderAction(formData) {
     return { error: "Order cannot be cancelled at this stage." };
   }
 
-  // Restore stock for this order's items securely
+  // Restore stock for this order's items atomically
   const { data: orderItems } = await supabase
     .from("order_items")
     .select("product_id, quantity")
@@ -254,24 +265,12 @@ export async function cancelCustomerOrderAction(formData) {
 
   if (orderItems && orderItems.length > 0) {
     const adminSupabase = createAdminClient();
-    
-    // We need to fetch current stock for these products first to add back correctly
-    const productIds = orderItems.map(item => item.product_id);
-    const { data: dbProducts } = await adminSupabase
-      .from("products")
-      .select("id, stock")
-      .in("id", productIds);
-
-    if (dbProducts) {
-      for (const item of orderItems) {
-        const dbProduct = dbProducts.find(p => p.id === item.product_id);
-        if (dbProduct) {
-          const newStock = (dbProduct.stock || 0) + item.quantity;
-          await adminSupabase
-            .from("products")
-            .update({ stock: newStock })
-            .eq("id", item.product_id);
-        }
+    for (const item of orderItems) {
+      if (item.product_id) {
+        await adminSupabase.rpc("increment_product_stock", {
+          p_product_id: item.product_id,
+          p_quantity: item.quantity,
+        });
       }
     }
   }
