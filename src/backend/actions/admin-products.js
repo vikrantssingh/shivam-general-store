@@ -48,11 +48,14 @@ export async function addProductAction(formData) {
       return { error: "Only JPG, PNG, and WebP images are allowed" };
     }
 
-    const fileExt = imageFile.name.split('.').pop();
+    const fileExt = (imageFile.name && imageFile.name.includes('.')) ? imageFile.name.split('.').pop() : 'jpg';
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from("products")
-      .upload(fileName, imageFile);
+      .upload(fileName, imageFile, {
+        contentType: imageFile.type || "image/jpeg",
+        upsert: true
+      });
       
     if (uploadError) {
       console.error("Image upload error:", uploadError);
@@ -60,7 +63,7 @@ export async function addProductAction(formData) {
     }
     
     if (uploadData) {
-      const { data: { publicUrl } } = supabase.storage.from("products").getPublicUrl(fileName);
+      const { data: { publicUrl } } = supabaseAdmin.storage.from("products").getPublicUrl(fileName);
       image_url = publicUrl;
     }
   }
@@ -128,11 +131,14 @@ export async function updateProductAction(formData) {
       return { error: "Only JPG, PNG, and WebP images are allowed" };
     }
 
-    const fileExt = imageFile.name.split('.').pop();
+    const fileExt = (imageFile.name && imageFile.name.includes('.')) ? imageFile.name.split('.').pop() : 'jpg';
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from("products")
-      .upload(fileName, imageFile);
+      .upload(fileName, imageFile, {
+        contentType: imageFile.type || "image/jpeg",
+        upsert: true
+      });
       
     if (uploadError) {
       console.error("Image upload error:", uploadError);
@@ -140,7 +146,7 @@ export async function updateProductAction(formData) {
     }
     
     if (uploadData) {
-      const { data: { publicUrl } } = supabase.storage.from("products").getPublicUrl(fileName);
+      const { data: { publicUrl } } = supabaseAdmin.storage.from("products").getPublicUrl(fileName);
       
       if (image_url) {
         try {

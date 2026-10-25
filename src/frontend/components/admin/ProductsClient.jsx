@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,37 +12,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  ArrowLeft, 
+  Camera, 
+  Image as ImageIcon, 
+  Crop, 
+  CheckCircle2, 
+  X as XIcon, 
+  Loader2 
+} from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addProductAction, updateProductAction, deleteProductAction } from "@/backend/actions/admin-products";
 import { toast } from "sonner";
-import imageCompression from "browser-image-compression";
-
-const getSquareImageBlob = async (file) => {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = () => {
-      const size = Math.min(img.width, img.height);
-      const startX = (img.width - size) / 2;
-      const startY = (img.height - size) / 2;
-      
-      const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-      
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, startX, startY, size, size, 0, 0, size, size);
-      
-      canvas.toBlob((blob) => {
-        if (!blob) reject(new Error("Canvas to Blob failed"));
-        const newFile = new File([blob], file.name, { type: "image/jpeg" });
-        resolve(newFile);
-      }, "image/jpeg", 1);
-    };
-    img.onerror = (error) => reject(error);
-  });
-};
+import ImageCropperModal from "./ImageCropperModal";
 
 export default function ProductsClient({ initialProducts, categories, filterLowStock = false }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,6 +41,16 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedRetailStatus, setSelectedRetailStatus] = useState("true");
   const [selectedWholesaleStatus, setSelectedWholesaleStatus] = useState("true");
+
+  // Image Upload & Crop State
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperRawSrc, setCropperRawSrc] = useState(null);
+  const [productImageFile, setProductImageFile] = useState(null);
+  const [productImagePreview, setProductImagePreview] = useState(null);
+  const [imageSizeKb, setImageSizeKb] = useState(null);
+
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   const filteredProducts = initialProducts.filter(p => {
     const matchesSearch = (p.name || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -71,6 +67,10 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
     setSelectedCategoryId("");
     setSelectedRetailStatus("true");
     setSelectedWholesaleStatus("true");
+    setProductImageFile(null);
+    setProductImagePreview(null);
+    setCropperRawSrc(null);
+    setImageSizeKb(null);
     setIsFormOpen(true);
   };
 
@@ -79,8 +79,39 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
     setSelectedCategoryId(product.category_id || "");
     setSelectedRetailStatus(product.retail_status !== false ? "true" : "false");
     setSelectedWholesaleStatus(product.wholesale_status !== false ? "true" : "false");
-    
+    setProductImageFile(null);
+    setProductImagePreview(product.image_url || null);
+    setCropperRawSrc(null);
+    setImageSizeKb(null);
     setIsFormOpen(true);
+  };
+
+  const handleImageFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setCropperRawSrc(objectUrl);
+    setCropperOpen(true);
+    e.target.value = ""; // Reset input so same file can be picked again if needed
+  };
+
+  const handleCropComplete = (croppedFile, previewUrl, sizeKb) => {
+    setProductImageFile(croppedFile);
+    setProductImagePreview(previewUrl);
+    setImageSizeKb(sizeKb);
+    toast.success(`Image fitted into square frame (${sizeKb} KB)`);
+  };
+
+  const handleRemoveImage = () => {
+    setProductImageFile(null);
+    setProductImagePreview(null);
+    setImageSizeKb(null);
   };
 
   const handleSubmit = async (e) => {
@@ -88,54 +119,34 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
     setIsLoading(true);
     const formData = new FormData(e.target);
     
-    const imageCamera = formData.get("image_camera");
-    const imageGallery = formData.get("image_gallery");
-    const imageFile = (imageCamera && imageCamera.size > 0) ? imageCamera : (imageGallery && imageGallery.size > 0 ? imageGallery : null);
+    // Attach the pre-cropped, lightweight high-speed image (40-60KB)
+    if (productImageFile) {
+      formData.set("image", productImageFile, productImageFile.name);
+    }
     
-    if (imageFile && imageFile.size > 0) {
-      try {
-        toast.info("Preparing & compressing image...", { id: "img-compress" });
-        
-        // 1. Attempt to crop to perfect square
-        let fileToCompress = imageFile;
-        try {
-          fileToCompress = await getSquareImageBlob(imageFile);
-        } catch (squareErr) {
-          console.warn("Squaring failed, proceeding with original dimensions:", squareErr);
+    try {
+      if (editingProduct) {
+        formData.append("id", editingProduct.id);
+        const res = await updateProductAction(formData);
+        if (res.error) toast.error(res.error);
+        else {
+          toast.success("Product updated successfully!");
+          setIsFormOpen(false);
         }
-        
-        // 2. Compress to ~30KB (Guaranteed step)
-        const options = {
-          maxSizeMB: 0.03,
-          useWebWorker: true,
-        };
-        const compressedFile = await imageCompression(fileToCompress, options);
-        
-        formData.set("image", compressedFile, compressedFile.name);
-        toast.dismiss("img-compress");
-      } catch (error) {
-        console.error("Image processing error:", error);
-        toast.error("Failed to process image. Proceeding with original.", { id: "img-compress" });
+      } else {
+        const res = await addProductAction(formData);
+        if (res.error) toast.error(res.error);
+        else {
+          toast.success("Product added successfully!");
+          setIsFormOpen(false);
+        }
       }
+    } catch (err) {
+      console.error("Submit error:", err);
+      toast.error("An error occurred while saving the product");
+    } finally {
+      setIsLoading(false);
     }
-    
-    if (editingProduct) {
-      formData.append("id", editingProduct.id);
-      const res = await updateProductAction(formData);
-      if (res.error) toast.error(res.error);
-      else {
-        toast.success("Product updated successfully!");
-        setIsFormOpen(false);
-      }
-    } else {
-      const res = await addProductAction(formData);
-      if (res.error) toast.error(res.error);
-      else {
-        toast.success("Product added successfully!");
-        setIsFormOpen(false);
-      }
-    }
-    setIsLoading(false);
   };
 
   const handleDelete = async (id) => {
@@ -150,6 +161,31 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
   if (isFormOpen) {
     return (
       <div className="space-y-6 max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-sm border">
+        {/* Cropper Modal */}
+        <ImageCropperModal
+          isOpen={cropperOpen}
+          imageSrc={cropperRawSrc}
+          onClose={() => setCropperOpen(false)}
+          onCropComplete={handleCropComplete}
+        />
+
+        {/* Hidden File Inputs */}
+        <input 
+          ref={cameraInputRef} 
+          type="file" 
+          accept="image/*" 
+          capture="environment" 
+          className="hidden" 
+          onChange={handleImageFileSelect} 
+        />
+        <input 
+          ref={galleryInputRef} 
+          type="file" 
+          accept="image/*" 
+          className="hidden" 
+          onChange={handleImageFileSelect} 
+        />
+
         <div className="flex items-center justify-between border-b pb-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
@@ -168,25 +204,120 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
             <Input name="name" defaultValue={editingProduct?.name || ""} placeholder="e.g. Aashirvaad Atta" required />
           </div>
 
+          {/* Product Image Section */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Product Image</label>
-            {editingProduct?.image_url && (
-              <div className="mb-2">
-                <img src={editingProduct.image_url} alt="Current product" className="w-20 h-20 object-cover rounded-md border" />
-                <input type="hidden" name="existing_image_url" value={editingProduct.image_url} />
-                <p className="text-xs text-gray-500 mt-1">Upload a new image to replace the current one.</p>
+            <label className="text-sm font-semibold text-gray-700 flex items-center justify-between">
+              <span>Product Image (Square Frame)</span>
+              {imageSizeKb && (
+                <span className="text-xs font-normal text-green-600 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Fast Upload Ready ({imageSizeKb} KB)
+                </span>
+              )}
+            </label>
+
+            {/* If an image is selected or existing */}
+            {productImagePreview ? (
+              <div className="p-4 border-2 border-dashed border-green-300 rounded-xl bg-green-50/30 flex flex-col sm:flex-row items-center gap-4">
+                <div className="relative group shrink-0">
+                  <img 
+                    src={productImagePreview} 
+                    alt="Product preview" 
+                    className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-xl border-2 border-green-500 bg-white shadow-sm" 
+                  />
+                  {productImageFile && (
+                    <span className="absolute -top-2 -right-2 bg-green-600 text-white rounded-full p-1 shadow">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2 text-center sm:text-left flex-1">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-800">
+                      {productImageFile ? "Square Image Fitted & Ready" : "Current Active Image"}
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {productImageFile 
+                        ? `Optimized for fast 1-second saving (${imageSizeKb} KB).`
+                        : "You can change or crop a new photo."}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start pt-1">
+                    {cropperRawSrc && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs flex items-center gap-1 border-gray-300"
+                        onClick={() => setCropperOpen(true)}
+                      >
+                        <Crop className="w-3.5 h-3.5 text-green-600" /> Re-crop
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs flex items-center gap-1 border-gray-300"
+                      onClick={() => cameraInputRef.current?.click()}
+                    >
+                      <Camera className="w-3.5 h-3.5 text-blue-600" /> Camera
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs flex items-center gap-1 border-gray-300"
+                      onClick={() => galleryInputRef.current?.click()}
+                    >
+                      <ImageIcon className="w-3.5 h-3.5 text-purple-600" /> Gallery
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-1"
+                      onClick={handleRemoveImage}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Remove
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Hidden input for existing image if editing */}
+                {editingProduct?.image_url && !productImageFile && (
+                  <input type="hidden" name="existing_image_url" value={editingProduct.image_url} />
+                )}
+              </div>
+            ) : (
+              /* No Image Chosen Yet: Show Camera & Gallery buttons */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-blue-200 bg-white hover:bg-blue-50/60 hover:border-blue-400 text-blue-700 transition shadow-xs group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+                    <Camera className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className="text-xs font-semibold">📸 Take Photo (Camera)</span>
+                  <span className="text-[10px] text-gray-500 mt-0.5">Live square framing</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-purple-200 bg-white hover:bg-purple-50/60 hover:border-purple-400 text-purple-700 transition shadow-xs group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+                    <ImageIcon className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <span className="text-xs font-semibold">🖼️ Choose from Gallery</span>
+                  <span className="text-[10px] text-gray-500 mt-0.5">Upload & fit into square</span>
+                </button>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-medium">📸 Direct Camera</label>
-                <Input type="file" name="image_camera" accept="image/*" capture="environment" className="cursor-pointer text-xs" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-medium">🖼️ Upload from Gallery</label>
-                <Input type="file" name="image_gallery" accept="image/*" className="cursor-pointer text-xs" />
-              </div>
-            </div>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -269,8 +400,14 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
 
           <div className="flex items-center justify-end gap-3 pt-6 border-t mt-6">
             <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Product"}
+            <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 flex items-center gap-2" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                </>
+              ) : (
+                "Save Product"
+              )}
             </Button>
           </div>
         </form>
@@ -386,7 +523,7 @@ export default function ProductsClient({ initialProducts, categories, filterLowS
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1">
                     <Badge variant="outline" className={
                       product.retail_status !== false ? "border-green-200 bg-green-50 text-green-700 font-semibold text-[10px]" : "border-red-200 bg-red-50 text-red-700 font-semibold text-[10px]"
                     }>
