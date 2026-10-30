@@ -1,8 +1,22 @@
+import { createClient } from "@/backend/supabase/server";
+
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Terms and Conditions - Shivam General Store",
 };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const supabase = createClient();
+  const { data: settings } = await supabase
+    .from("settings")
+    .select("shop_name, email")
+    .eq("id", 1)
+    .single();
+
+  const storeName = settings?.shop_name || "Shivam General Store";
+  const contactEmail = settings?.email || "contact@shivamstore.in";
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
@@ -12,7 +26,7 @@ export default function TermsPage() {
           <p className="text-sm text-gray-400">Last updated: {new Date().toLocaleDateString()}</p>
           
           <p>
-            Welcome to <strong>Shivam General Store</strong>. By accessing this website, we assume you accept these terms and conditions. 
+            Welcome to <strong>{storeName}</strong>. By accessing this website, we assume you accept these terms and conditions. 
             Do not continue to use our store if you do not agree to all of the terms and conditions stated on this page.
           </p>
 
@@ -43,7 +57,7 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">5. Contact Information</h2>
           <p>For any queries regarding these terms, please contact:</p>
-          <p className="font-medium text-gray-900">Email: support@shivamgeneralstore.com</p>
+          <p className="font-medium text-gray-900">Email: {contactEmail}</p>
         </div>
       </div>
     </div>

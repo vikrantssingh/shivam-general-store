@@ -1,8 +1,22 @@
+import { createClient } from "@/backend/supabase/server";
+
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Privacy Policy - Shivam General Store",
 };
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const supabase = createClient();
+  const { data: settings } = await supabase
+    .from("settings")
+    .select("shop_name, email")
+    .eq("id", 1)
+    .single();
+
+  const storeName = settings?.shop_name || "Shivam General Store";
+  const contactEmail = settings?.email || "contact@shivamstore.in";
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
@@ -12,7 +26,7 @@ export default function PrivacyPolicyPage() {
           <p className="text-sm text-gray-400">Last updated: {new Date().toLocaleDateString()}</p>
           
           <p>
-            At <strong>Shivam General Store</strong>, we value your privacy and are committed to protecting your personal data. 
+            At <strong>{storeName}</strong>, we value your privacy and are committed to protecting your personal data. 
             This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website or make a purchase.
           </p>
 
@@ -32,7 +46,7 @@ export default function PrivacyPolicyPage() {
 
           <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">4. Contact Us</h2>
           <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-          <p className="font-medium text-gray-900">Email: support@shivamgeneralstore.com</p>
+          <p className="font-medium text-gray-900">Email: {contactEmail}</p>
         </div>
       </div>
     </div>

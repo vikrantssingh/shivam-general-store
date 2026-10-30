@@ -1,16 +1,30 @@
+import { createClient } from "@/backend/supabase/server";
+
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "About Us - Shivam General Store",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const supabase = createClient();
+  const { data: settings } = await supabase
+    .from("settings")
+    .select("shop_name, store_address")
+    .eq("id", 1)
+    .single();
+
+  const storeName = settings?.shop_name || "Shivam General Store";
+  const storeAddress = settings?.store_address || "123 Main Market, New Delhi, 110001";
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">About Shivam General Store</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">About {storeName}</h1>
         
         <div className="prose prose-green max-w-none text-gray-600 space-y-6">
           <p>
-            Welcome to <strong>Shivam General Store</strong>, your one-stop destination for all daily household and grocery needs. 
+            Welcome to <strong>{storeName}</strong>, your one-stop destination for all daily household and grocery needs. 
             We have been serving our local community with dedication, ensuring that every family gets access to fresh, high-quality, and affordable products.
           </p>
 
@@ -23,9 +37,8 @@ export default function AboutPage() {
           <div className="bg-green-50 rounded-xl p-6 my-8 border border-green-100">
             <h3 className="text-lg font-bold text-green-900 mb-2">Our Store Location</h3>
             <p className="text-green-800">
-              <strong>Shivam General Store</strong><br />
-              Main Market, Near Clock Tower<br />
-              New Delhi, 110001<br />
+              <strong>{storeName}</strong><br />
+              {storeAddress}<br />
               India
             </p>
           </div>
@@ -39,7 +52,7 @@ export default function AboutPage() {
           </ul>
 
           <p className="mt-8">
-            Thank you for trusting Shivam General Store. We look forward to serving you!
+            Thank you for trusting {storeName}. We look forward to serving you!
           </p>
         </div>
       </div>
