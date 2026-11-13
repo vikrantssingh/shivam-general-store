@@ -45,13 +45,53 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
     };
   }, []);
 
+  const cleanQLower = searchQuery.trim().toLowerCase();
+  const queryWords = cleanQLower.split(/\s+/).filter(w => w.length >= 3);
+
   const filteredCategories = searchQuery.trim() 
-    ? searchData.categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3) 
+    ? searchData.categories.filter(c => {
+        const cName = (c.name || "").toLowerCase();
+        return cName.includes(cleanQLower) || cleanQLower.includes(cName) || queryWords.some(w => cName.includes(w));
+      }).slice(0, 3) 
     : [];
     
-  const filteredProducts = searchQuery.trim() 
-    ? searchData.products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5) 
+  // 1. Direct matching products
+  const directMatching = cleanQLower 
+    ? searchData.products.filter(p => {
+        const pName = (p.name || "").toLowerCase();
+        return pName.includes(cleanQLower) || queryWords.some(w => pName.includes(w));
+      }).sort((a, b) => {
+        const aExact = (a.name || "").toLowerCase().includes(cleanQLower);
+        const bExact = (b.name || "").toLowerCase().includes(cleanQLower);
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        return 0;
+      })
     : [];
+
+  // 2. Identify related categories from direct matches and query terms
+  const matchedCatIds = new Set(directMatching.map(p => p.category_id).filter(Boolean));
+  searchData.categories.forEach(c => {
+    const cName = (c.name || "").toLowerCase();
+    if (
+      cName.includes(cleanQLower) || 
+      cleanQLower.includes(cName) || 
+      queryWords.some(w => {
+        const singular = w.endsWith('s') ? w.slice(0, -1) : w;
+        return cName.includes(w) || (singular.length >= 3 && cName.includes(singular));
+      })
+    ) {
+      matchedCatIds.add(c.id);
+    }
+  });
+
+  // 3. Related products from same categories
+  const directIds = new Set(directMatching.map(p => p.id));
+  const relatedProducts = matchedCatIds.size > 0
+    ? searchData.products.filter(p => matchedCatIds.has(p.category_id) && !directIds.has(p.id))
+    : [];
+
+  const filteredProducts = [...directMatching, ...relatedProducts].slice(0, 6);
 
   const handleSelectSuggestion = (url) => {
     setShowSuggestions(false);

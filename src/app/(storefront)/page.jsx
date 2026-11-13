@@ -5,6 +5,7 @@ import { createClient } from "@/backend/supabase/server";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import CategoryList from "@/frontend/components/storefront/CategoryList";
+import { getStorefrontProducts } from "./actions";
 
 export default async function StorefrontHome({ searchParams }) {
   const supabase = createClient();
@@ -39,37 +40,14 @@ export default async function StorefrontHome({ searchParams }) {
     .select("*")
     .order("name");
 
-  // Fetch products (protect wholesale pricing columns for retail customers)
-  const selectColumns = isShopkeeper 
-    ? "*" 
-    : "id, category_id, name, description, unit, image_url, retail_price, mrp, stock, retail_limit, low_stock_threshold, status, retail_status, wholesale_status, created_at, updated_at";
-
-  let productsQuery = supabase
-    .from("products")
-    .select(selectColumns)
-    .eq(isShopkeeper ? "wholesale_status" : "retail_status", true)
-    .order("created_at", { ascending: false });
-
-  if (categoryId && categoryId !== "all") {
-    productsQuery = productsQuery.eq("category_id", categoryId);
-  }
-  if (q) {
-    const matchingCategories = (categories || []).filter(c => 
-      c.name.toLowerCase().includes(q.toLowerCase())
-    );
-    
-    if (matchingCategories.length > 0) {
-      const categoryIds = matchingCategories.map(c => c.id).join(',');
-      productsQuery = productsQuery.or(`name.ilike.%${q}%,category_id.in.(${categoryIds})`);
-    } else {
-      productsQuery = productsQuery.ilike("name", `%${q}%`);
-    }
-  }
-
-  // Fetch initial batch of 14 items. The InfiniteProductGrid will fetch more as the user scrolls.
-  productsQuery = productsQuery.limit(14);
-
-  const { data: products } = await productsQuery;
+  // Fetch initial batch of products (including related products from same category if searching)
+  const products = await getStorefrontProducts({
+    page: 0,
+    categoryId,
+    q,
+    limit: 14,
+    isShopkeeper
+  });
 
   // Use a fallback if categories are empty
   const displayCategories = categories && categories.length > 0 
