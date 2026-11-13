@@ -15,16 +15,34 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const headerRef = useRef(null);
+
+  const desktopSearchRef = useRef(null);
+  const desktopInputRef = useRef(null);
+  const mobileSearchRef = useRef(null);
+  const mobileInputRef = useRef(null);
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get('q') || "");
+  }, [searchParams]);
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (headerRef.current && !headerRef.current.contains(event.target)) {
+      const isInsideDesktop = desktopSearchRef.current && desktopSearchRef.current.contains(event.target);
+      const isInsideMobile = mobileSearchRef.current && mobileSearchRef.current.contains(event.target);
+
+      if (!isInsideDesktop && !isInsideMobile) {
         setShowSuggestions(false);
+        desktopInputRef.current?.blur();
+        mobileInputRef.current?.blur();
       }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const filteredCategories = searchQuery.trim() 
@@ -34,6 +52,13 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
   const filteredProducts = searchQuery.trim() 
     ? searchData.products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5) 
     : [];
+
+  const handleSelectSuggestion = (url) => {
+    setShowSuggestions(false);
+    desktopInputRef.current?.blur();
+    mobileInputRef.current?.blur();
+    router.push(url);
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -49,11 +74,14 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
     // if empty, just go to /
     if (url === '') url = '/';
 
-    router.push(url);
     setShowSuggestions(false);
+    desktopInputRef.current?.blur();
+    mobileInputRef.current?.blur();
+    router.push(url);
   };
+
   return (
-    <header ref={headerRef} className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Mobile Menu & Logo */}
         <div className="flex items-center gap-3">
@@ -84,9 +112,20 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
             <AdminRoleSwitcher />
           )}
 
-          <div className="hidden sm:block relative">
-            <form onSubmit={handleSearch} className="flex relative">
+          {/* Desktop Search Interface */}
+          <div ref={desktopSearchRef} className="hidden sm:block relative">
+            <form 
+              onSubmit={handleSearch} 
+              className="flex relative cursor-text"
+              onClick={() => {
+                desktopInputRef.current?.focus();
+                if (searchQuery.trim().length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
+            >
               <input 
+                ref={desktopInputRef}
                 type="search" 
                 placeholder="Search products/categories..." 
                 value={searchQuery}
@@ -94,10 +133,14 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
                   setSearchQuery(e.target.value);
                   setShowSuggestions(e.target.value.trim().length > 0);
                 }}
-                onFocus={() => setShowSuggestions(searchQuery.trim().length > 0)}
+                onFocus={() => {
+                  if (searchQuery.trim().length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 className="w-48 lg:w-64 rounded-full border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
               />
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             </form>
             
             {showSuggestions && (filteredCategories.length > 0 || filteredProducts.length > 0) && (
@@ -108,7 +151,7 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
                     {filteredCategories.map(c => (
                       <div 
                         key={c.id} 
-                        onClick={() => { setShowSuggestions(false); router.push(`/?category=${c.id}`); }}
+                        onClick={() => handleSelectSuggestion(`/?category=${c.id}`)}
                         className="cursor-pointer px-2 py-1.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md"
                       >
                         {c.name}
@@ -122,7 +165,7 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
                     {filteredProducts.map(p => (
                       <div 
                         key={p.id} 
-                        onClick={() => { setShowSuggestions(false); router.push(`/?q=${encodeURIComponent(p.name)}`); }}
+                        onClick={() => handleSelectSuggestion(`/?q=${encodeURIComponent(p.name)}`)}
                         className="cursor-pointer px-2 py-1.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md flex items-center gap-2"
                       >
                         <span className="truncate">{p.name}</span>
@@ -173,10 +216,21 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
         </div>
       </div>
       
-      <div className="container mx-auto p-3 sm:hidden relative">
-        <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      {/* Mobile Search Interface */}
+      <div ref={mobileSearchRef} className="container mx-auto p-3 sm:hidden relative">
+        <form 
+          onSubmit={handleSearch} 
+          className="relative cursor-text"
+          onClick={() => {
+            mobileInputRef.current?.focus();
+            if (searchQuery.trim().length > 0) {
+              setShowSuggestions(true);
+            }
+          }}
+        >
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input 
+            ref={mobileInputRef}
             type="search" 
             placeholder="Search products/categories..." 
             value={searchQuery}
@@ -184,7 +238,11 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
               setSearchQuery(e.target.value);
               setShowSuggestions(e.target.value.trim().length > 0);
             }}
-            onFocus={() => setShowSuggestions(searchQuery.trim().length > 0)}
+            onFocus={() => {
+              if (searchQuery.trim().length > 0) {
+                setShowSuggestions(true);
+              }
+            }}
             className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
           />
         </form>
@@ -196,7 +254,7 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
                 {filteredCategories.map(c => (
                   <div 
                     key={c.id} 
-                    onClick={() => { setShowSuggestions(false); router.push(`/?category=${c.id}`); }}
+                    onClick={() => handleSelectSuggestion(`/?category=${c.id}`)}
                     className="cursor-pointer px-2 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md"
                   >
                     {c.name}
@@ -210,7 +268,7 @@ export default function Header({ user, isAdmin, searchData = { categories: [], p
                 {filteredProducts.map(p => (
                   <div 
                     key={p.id} 
-                    onClick={() => { setShowSuggestions(false); router.push(`/?q=${encodeURIComponent(p.name)}`); }}
+                    onClick={() => handleSelectSuggestion(`/?q=${encodeURIComponent(p.name)}`)}
                     className="cursor-pointer px-2 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md flex items-center gap-2"
                   >
                     <span className="truncate">{p.name}</span>
