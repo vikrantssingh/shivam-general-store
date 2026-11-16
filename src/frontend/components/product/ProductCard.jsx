@@ -27,6 +27,7 @@ export default function ProductCard({ product }) {
             src={product.image_url} 
             alt={product.name} 
             fill
+            unoptimized
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             className="object-cover rounded-lg shadow-inner bg-white" 
           />
